@@ -10,7 +10,19 @@ Implemented techniques:
 - Real-time toggle between shadow techniques
 - Adjustable settings (bias, filter size, light size, etc.)
 
+## Screenshots
+
+| Technique | Preview |
+|----------|---------|
+| Hard |<img width="1920" height="1200" alt="image" src="https://github.com/user-attachments/assets/0bbac256-f5c7-4eed-a854-2128d962a1a4" />|
+| PCF | <img width="1920" height="1200" alt="image" src="https://github.com/user-attachments/assets/676349e5-71a2-4301-8e75-787be6618b3b" />|
+| VSM | <img width="1920" height="1200" alt="image" src="https://github.com/user-attachments/assets/ce9749f4-319d-4327-880e-cada2692b318" />|
+| PCSS (r=1)| <img width="1920" height="1200" alt="image" src="https://github.com/user-attachments/assets/d9e5f826-5de2-4346-b89e-ff4759888029" />|
+| PCSS (r=2.5)|<img width="1919" height="1199" alt="image" src="https://github.com/user-attachments/assets/71cf6f8a-ac23-4b4c-a302-c783d0b0857e" />|
+
+
 ## Controls
+- WASD to move light on XZ. Q/E to move light on Y. 
 - Use mouse to click UI.
 
 ## Build/Run
@@ -127,15 +139,6 @@ $$
 - Blocker search radius / samples
 - PCF sample count
 - Bias
-
-## Screenshots
-
-| Technique | Preview |
-|----------|---------|
-| Hard |<img width="2128" height="1270" alt="image" src="https://github.com/user-attachments/assets/3d33a1ea-1944-4fad-a20b-a6c1e9d50e45" />|
-| PCF | <img width="2130" height="1275" alt="image" src="https://github.com/user-attachments/assets/4e1269d1-af6e-4e25-b26e-7ae5d9c3448f" />|
-| VSM | <img width="2127" height="1271" alt="image" src="https://github.com/user-attachments/assets/64db362b-8925-45e0-a8ef-20fab46c3799" />|
-| PCSS | <img width="2126" height="1273" alt="image" src="https://github.com/user-attachments/assets/92225100-d81d-4bb0-9b73-80713002b313" />|
 
 ## Sources
 - https://developer.nvidia.com/gpugems/gpugems3/part-ii-light-and-shadows/chapter-8-summed-area-variance-shadow-maps
