@@ -14,10 +14,11 @@ Implemented techniques:
 
 | Technique | Preview |
 |----------|---------|
-| Hard |<img width="1919" height="1199" alt="image" src="https://github.com/user-attachments/assets/73f9d39d-062a-401a-ac86-fdac436fff2c" />|
-| PCF | <img width="1919" height="1199" alt="image" src="https://github.com/user-attachments/assets/bddeae11-3eb9-4899-adbd-1d39f171e64c" />
-| VSM | <img width="1919" height="1199" alt="image" src="https://github.com/user-attachments/assets/f3bb3084-a0a3-4efc-afc9-6d55a3a75de0" />|
-| PCSS | <img width="1919" height="1199" alt="image" src="https://github.com/user-attachments/assets/82b3dc0f-b5fe-4cc1-a6f9-67bd4acabc6b" />|
+| Hard |<img width="1920" height="1200" alt="image" src="https://github.com/user-attachments/assets/0bbac256-f5c7-4eed-a854-2128d962a1a4" />|
+| PCF | <img width="1920" height="1200" alt="image" src="https://github.com/user-attachments/assets/676349e5-71a2-4301-8e75-787be6618b3b" />|
+| VSM | <img width="1920" height="1200" alt="image" src="https://github.com/user-attachments/assets/ce9749f4-319d-4327-880e-cada2692b318" />|
+| PCSS (r=1)| <img width="1920" height="1200" alt="image" src="https://github.com/user-attachments/assets/d9e5f826-5de2-4346-b89e-ff4759888029" />|
+| PCSS (r=2.5)|<img width="1919" height="1199" alt="image" src="https://github.com/user-attachments/assets/71cf6f8a-ac23-4b4c-a302-c783d0b0857e" />|
 
 
 ## Controls
