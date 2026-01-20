@@ -1,3 +1,8 @@
-# Assignment 1
 
-See [A1.pdf](A1.pdf) for the assignment specifications.
+# Advanced Shadows
+Implementation of PCF, Variance, and PCSS shadows in webgl/three.js.
+
+Supports realtime adjustable settings.
+
+## Running
+1. Run index.html with live server.
