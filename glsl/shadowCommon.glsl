@@ -63,6 +63,7 @@ float shadowFactorPCF(
 }
 */
 
+//TODO: need light bleeding reduction
 float shadowFactorVariance(
         samplerCube shadowCube,
         vec3 lightPos,

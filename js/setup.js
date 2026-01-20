@@ -232,7 +232,7 @@ function loadSceneObjects(scene) {
     */
     
 
-    const floorGeometry = new THREE.PlaneBufferGeometry(150.0, 150.0);
+    const floorGeometry = new THREE.PlaneBufferGeometry(500.0, 500.0);
     floorGeometry.setAttribute('uv2', new THREE.BufferAttribute(floorGeometry.attributes.uv.array, 2));
     const floor = new THREE.Mesh(floorGeometry, floorMaterial);
     floor.rotation.x = -Math.PI / 2.0;
@@ -240,10 +240,10 @@ function loadSceneObjects(scene) {
     scene.add(floor);
 
 
-    loadAndPlaceOBJ('obj/armadillo.obj', armadilloMaterial, function (armadillo) {
-            armadillo.position.set(0.0, 5.3, -8.0);
-            armadillo.rotation.y = Math.PI;
-            armadillo.scale.set(0.1, 0.1, 0.1);
+    loadAndPlaceOBJ('obj/trex.obj', armadilloMaterial, function (armadillo) {
+            armadillo.position.set(0.0, 30, -8.0);
+            armadillo.rotation.x = -Math.PI
+            armadillo.scale.set(1.0, 1.0, 1.0);
             scene.add(armadillo);
     });
 
@@ -259,7 +259,7 @@ function loadSceneObjects(scene) {
     }
 
     if (!sphereLight) {
-            sphereLight = new THREE.PointLight(0xffffff, 1.5, 150);
+            sphereLight = new THREE.PointLight(0xffffff, 2.5, 500);
             scene.add(sphereLight);
     }
 }
