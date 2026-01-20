@@ -11,6 +11,7 @@ Implemented techniques:
 - Adjustable settings (bias, filter size, light size, etc.)
 
 ## Controls
+- WASD to move light on XZ. Q/E to move light on Y. 
 - Use mouse to click UI.
 
 ## Build/Run
