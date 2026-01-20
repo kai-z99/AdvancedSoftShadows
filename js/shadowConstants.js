@@ -1,0 +1,67 @@
+'use strict';
+
+// Shadow options and configuration constants
+const shadowModeNames = ['', 'Hard', 'PCF', 'Variance', 'PCSS'];
+const BASE_SHADOW_RES = 512;
+const VARIANCE_SHADOW_RES = 512;
+const SHADOW_RES_OPTIONS = [256, BASE_SHADOW_RES, 1024, 2048];
+
+const SHADOW_BIAS_STEP = 0.001;
+const MIN_SHADOW_BIAS = 0.0005;
+const MAX_SHADOW_BIAS = 0.02;
+const DEFAULT_SHADOW_BIAS = 0.0075;
+const BIAS_EPS = 1e-6;
+
+const PCF_RADIUS_MIN = 0.00;
+const PCF_RADIUS_MAX = 1.0;
+const PCF_RADIUS_STEP = 0.1;
+const DEFAULT_PCF_RADIUS = 0.2;
+const PCF_EPS = 1e-6;
+
+const SHADOW_NEAR_MIN = 0.05;
+const SHADOW_NEAR_MAX = 5.0;
+const DEFAULT_SHADOW_NEAR = 0.1;
+const SHADOW_NEAR_STEP = 0.1;
+const SHADOW_FAR_MIN = 20.0;
+const SHADOW_FAR_MAX = 200.0;
+const DEFAULT_SHADOW_FAR = 150.0;
+const SHADOW_FAR_STEP = 10.0;
+const SHADOW_MIN_RANGE = 2.0;
+
+const LIGHT_RADIUS_MIN = 0.0;
+const LIGHT_RADIUS_MAX = 4.0;
+const LIGHT_RADIUS_STEP = 0.1;
+const DEFAULT_LIGHT_RADIUS = 1.0;
+const LIGHT_RADIUS_EPS = 1e-4;
+
+const POISSON_SAMPLE_OPTIONS = [8, 16, 32, 64];
+const DEFAULT_POISSON_SAMPLES = 16;
+
+const PCSS_BLOCKER_SAMPLE_OPTIONS = [4, 8, 16, 32];
+const DEFAULT_PCSS_BLOCKER_SAMPLES = 8;
+
+// Shadow pass math helpers
+const faceDirs = [
+  new THREE.Vector3( 1, 0, 0),
+  new THREE.Vector3(-1, 0, 0),
+  new THREE.Vector3( 0, 1, 0),
+  new THREE.Vector3( 0,-1, 0),
+  new THREE.Vector3( 0, 0, 1),
+  new THREE.Vector3( 0, 0,-1),
+];
+const faceUps = [
+  new THREE.Vector3(0,-1, 0),
+  new THREE.Vector3(0,-1, 0),
+  new THREE.Vector3(0, 0, 1),
+  new THREE.Vector3(0, 0,-1),
+  new THREE.Vector3(0,-1, 0),
+  new THREE.Vector3(0,-1, 0),
+];
+
+const blurDirections = [
+  new THREE.Vector2(1, 0),
+  new THREE.Vector2(0, 1),
+];
+const VARIANCE_BLUR_TAPS_PER_PASS = 5; // center + two offsets in each direction
+const VARIANCE_BLUR_PASSES = 2;        // horizontal + vertical
+const VARIANCE_TOTAL_TAPS = VARIANCE_BLUR_TAPS_PER_PASS * VARIANCE_BLUR_PASSES;

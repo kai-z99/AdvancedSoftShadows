@@ -1,0 +1,34 @@
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <title>Advanced Shadows</title>
+    <style>
+        body {
+            /* Remove the default padding and margin around the canvas */
+            padding: 0;
+            margin: 0;
+            /* Disable scrolling */
+            overflow: hidden;
+        }
+    </style>
+</head>
+
+<body>
+    <canvas id="webglcanvas"></canvas>
+    <script src="js/WebGL.js"></script>
+    <script src="js/three.min.js"></script>
+    <script src="js/OBJLoader.js"></script>
+    <script src="js/SourceLoader.js"></script>
+    <script src="js/OrbitControls.js"></script>
+    <script src="js/KeyboardState.js"></script> <!-- By Jerome Etienne: http://jetienne.com/ -->
+    <script src="js/shadowConstants.js"></script>
+    <script src="js/setup.js"></script>
+    <script src="js/UI.js"></script>
+    <script src="js/shadowRender.js"></script>
+    <script src="js/shadowSettingsController.js"></script>
+    <script src="js/input.js"></script>
+    <script src="main.js"></script>
+</body>
+
+</html>
