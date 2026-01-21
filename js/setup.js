@@ -13,6 +13,8 @@ const uShadowBias    = { value: DEFAULT_SHADOW_BIAS };
 const uShadowCube = { value: null }; // set in recreateShadowPassRenderTargets()
 const uESMK = { value: DEFAULT_ESM_K };
 const uBleedReduction = { value: DEFAULT_BLEED_REDUCTION };
+const uVarianceBlurWidth = { value: DEFAULT_VARIANCE_BLUR_WIDTH };
+const uVarianceBlurSigma = { value: DEFAULT_VARIANCE_BLUR_SIGMA };
 
 //shadow rts
 let shadowCubeRT = null;
@@ -186,6 +188,8 @@ function initMaterials() {
                         faceRight: { value: new THREE.Vector3(1, 0, 0) },
                         faceUp: { value: new THREE.Vector3(0, 1, 0) },
                         faceForward: { value: new THREE.Vector3(0, 0, 1) },
+                        blurWidth: uVarianceBlurWidth,
+                        blurSigma: uVarianceBlurSigma,
                 },
                 depthTest: false,
                 depthWrite: false,
@@ -209,7 +213,7 @@ function initScenes() {
     if (!blurScene) {
             blurScene = new THREE.Scene();
             blurCamera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
-            blurPlane = new THREE.Mesh(new THREE.PlaneGeometry(2, 2));
+            blurPlane = new THREE.Mesh(new THREE.PlaneGeometry(2, 2)); //fullscreen quad
             blurScene.add(blurPlane);
     }
 

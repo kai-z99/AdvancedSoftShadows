@@ -124,6 +124,24 @@ function setBleedReduction(value)
     updateShadowUI();
 }
 
+function setVarianceBlurWidth(value)
+{
+    if (VARIANCE_BLUR_WIDTH_OPTIONS.indexOf(value) === -1) return;
+    if (uVarianceBlurWidth.value === value) return;
+    uVarianceBlurWidth.value = value;
+    console.log("Variance blur width: " + value);
+    updateShadowUI();
+}
+
+function setVarianceBlurSigma(value)
+{
+    if (VARIANCE_BLUR_SIGMA_OPTIONS.indexOf(value) === -1) return;
+    if (Math.abs(value - uVarianceBlurSigma.value) < VARIANCE_BLUR_SIGMA_EPS) return;
+    uVarianceBlurSigma.value = value;
+    console.log("Variance blur sigma: " + value.toFixed(1));
+    updateShadowUI();
+}
+
 function getShadowUIControls() {
     const modeValues = Array.from({ length: shadowModeNames.length - 1 }, (_, idx) => idx + 1);
     const shadowControls = [
@@ -234,6 +252,24 @@ function getShadowUIControls() {
             defaultValue: DEFAULT_BLEED_REDUCTION,
             eps: BLEED_REDUCTION_EPS,
             formatValue: (value) => value.toFixed(2),
+        }),
+        createDiscreteControl({
+            key: 'varianceBlurWidth',
+            label: 'Blur Width',
+            values: VARIANCE_BLUR_WIDTH_OPTIONS,
+            getValue: () => uVarianceBlurWidth.value,
+            setValue: setVarianceBlurWidth,
+            defaultValue: DEFAULT_VARIANCE_BLUR_WIDTH,
+            formatValue: (value) => value.toString(),
+        }),
+        createDiscreteControl({
+            key: 'varianceBlurSigma',
+            label: 'Blur Sigma',
+            values: VARIANCE_BLUR_SIGMA_OPTIONS,
+            getValue: () => uVarianceBlurSigma.value,
+            setValue: setVarianceBlurSigma,
+            defaultValue: DEFAULT_VARIANCE_BLUR_SIGMA,
+            formatValue: (value) => value.toFixed(1),
         }),
     ];
 

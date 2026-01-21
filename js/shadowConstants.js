@@ -71,6 +71,13 @@ const LIGHT_ATTENUATION_STEP = 10.0;
 const DEFAULT_LIGHT_ATTENUATION = 300.0;
 const LIGHT_ATTENUATION_EPS = 1e-2;
 
+//variance blur options
+const VARIANCE_BLUR_WIDTH_OPTIONS = [3, 5];
+const DEFAULT_VARIANCE_BLUR_WIDTH = 5;
+const VARIANCE_BLUR_SIGMA_OPTIONS = [1.0, 1.5, 2.0];
+const DEFAULT_VARIANCE_BLUR_SIGMA = 1.5;
+const VARIANCE_BLUR_SIGMA_EPS = 1e-3;
+
 
 
 // Shadow pass math helpers
