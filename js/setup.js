@@ -1,7 +1,7 @@
 'use strict';
 
 // Shared uniforms and render state
-const uLightPosition   = { type: 'v3', value: new THREE.Vector3(0.0, 20.0, -15.0) };
+const uLightPosition   = { type: 'v3', value: new THREE.Vector3(0.0, 70.0, -25.0) };
 const uLightRadius     = { value: DEFAULT_LIGHT_RADIUS };
 const uPCFRadius     = { value: DEFAULT_PCF_RADIUS };
 const uPoissonSamples = { value: DEFAULT_POISSON_SAMPLES };
@@ -260,7 +260,7 @@ function loadSceneObjects(scene) {
     });
 
     if (!sphereGeometry) {
-            sphereGeometry = new THREE.SphereGeometry(1.0, 32.0, 32.0);
+            sphereGeometry = new THREE.SphereGeometry(1.0, 32.0, 32.0); //doesnt matter where we put it
     }
 
     if (!sphere) {
