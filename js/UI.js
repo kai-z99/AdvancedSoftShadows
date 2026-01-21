@@ -117,6 +117,7 @@
     function createDebugPanel({
         controls = [],
         toggles = [],
+        sections = null,
     } = {}) {
         const infoElement = document.createElement('div');
         infoElement.id = 'info';
@@ -161,77 +162,112 @@
         });
         document.body.appendChild(warningElement);
 
+        const normalizedSections = (Array.isArray(sections) && sections.length > 0)
+            ? sections
+            : [{ controls, toggles }];
         const fields = {};
         const controlViews = [];
-        controls.forEach((control) => {
-            const rowOptions = {};
-            if (control.valueMinWidth) {
-                rowOptions.valueMinWidth = control.valueMinWidth;
-            }
-            if (control.onReset) {
-                rowOptions.reset = {
-                    label: control.resetLabel || 'Reset',
-                    onReset: () => control.onReset(),
-                };
-            }
-            const row = createInfoRow(
-                infoElement,
-                control.label || control.key,
-                control.key,
-                fields,
-                rowOptions
-            );
-            const buttons = createDualButtonGroup(
-                row.valueContainer,
-                () => control.onLower && control.onLower(),
-                () => control.onHigher && control.onHigher()
-            );
-            controlViews.push({
-                control,
-                valueSpan: row.valueSpan,
-                lowerButton: buttons.lower,
-                higherButton: buttons.higher,
-                resetButton: row.resetButton,
-            });
-        });
-
         const toggleViews = [];
-        toggles.forEach((toggle) => {
-            const toggleRow = document.createElement('div');
-            Object.assign(toggleRow.style, {
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-                gap: '12px',
-                width: '100%',
-                marginTop: '4px',
+        normalizedSections.forEach((section, index) => {
+            const sectionElement = document.createElement('div');
+            Object.assign(sectionElement.style, {
+                paddingTop: index === 0 ? '0' : '6px',
+                marginTop: index === 0 ? '0' : '6px',
+                borderTop: index === 0 ? 'none' : '1px solid rgba(255, 255, 255, 0.2)',
             });
-            const toggleLabel = document.createElement('span');
-            toggleLabel.textContent = toggle.label || 'Toggle';
-            toggleLabel.style.minWidth = '110px';
-            const toggleWrapper = document.createElement('div');
-            Object.assign(toggleWrapper.style, {
+
+            if (section.title) {
+                const titleElement = document.createElement('div');
+                titleElement.textContent = section.title;
+                Object.assign(titleElement.style, {
+                    fontWeight: 'bold',
+                    textTransform: 'uppercase',
+                    fontSize: '12px',
+                    letterSpacing: '0.06em',
+                    marginBottom: '6px',
+                    color: '#c5e3ff',
+                });
+                sectionElement.appendChild(titleElement);
+            }
+
+            const sectionBody = document.createElement('div');
+            Object.assign(sectionBody.style, {
                 display: 'flex',
-                alignItems: 'center',
-                gap: '6px',
-                flex: '1',
-                justifyContent: 'flex-end',
+                flexDirection: 'column',
+                gap: '4px',
             });
-            const checkbox = document.createElement('input');
-            checkbox.type = 'checkbox';
-            const toggleState = toggle.getState ? toggle.getState() : null;
-            checkbox.checked = toggleState ? !!toggleState.checked : false;
-            checkbox.addEventListener('change', (event) => {
-                event.stopPropagation();
-                if (typeof toggle.onToggle === 'function') {
-                    toggle.onToggle(checkbox.checked);
+            sectionElement.appendChild(sectionBody);
+            infoElement.appendChild(sectionElement);
+
+            (section.controls || []).forEach((control) => {
+                const rowOptions = {};
+                if (control.valueMinWidth) {
+                    rowOptions.valueMinWidth = control.valueMinWidth;
                 }
+                if (control.onReset) {
+                    rowOptions.reset = {
+                        label: control.resetLabel || 'Reset',
+                        onReset: () => control.onReset(),
+                    };
+                }
+                const row = createInfoRow(
+                    sectionBody,
+                    control.label || control.key,
+                    control.key,
+                    fields,
+                    rowOptions
+                );
+                const buttons = createDualButtonGroup(
+                    row.valueContainer,
+                    () => control.onLower && control.onLower(),
+                    () => control.onHigher && control.onHigher()
+                );
+                controlViews.push({
+                    control,
+                    valueSpan: row.valueSpan,
+                    lowerButton: buttons.lower,
+                    higherButton: buttons.higher,
+                    resetButton: row.resetButton,
+                });
             });
-            toggleWrapper.appendChild(checkbox);
-            toggleRow.appendChild(toggleLabel);
-            toggleRow.appendChild(toggleWrapper);
-            infoElement.appendChild(toggleRow);
-            toggleViews.push({ toggle, checkbox });
+
+            (section.toggles || []).forEach((toggle) => {
+                const toggleRow = document.createElement('div');
+                Object.assign(toggleRow.style, {
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    gap: '12px',
+                    width: '100%',
+                    marginTop: '4px',
+                });
+                const toggleLabel = document.createElement('span');
+                toggleLabel.textContent = toggle.label || 'Toggle';
+                toggleLabel.style.minWidth = '110px';
+                const toggleWrapper = document.createElement('div');
+                Object.assign(toggleWrapper.style, {
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                    flex: '1',
+                    justifyContent: 'flex-end',
+                });
+                const checkbox = document.createElement('input');
+                checkbox.type = 'checkbox';
+                const toggleState = toggle.getState ? toggle.getState() : null;
+                checkbox.checked = toggleState ? !!toggleState.checked : false;
+                checkbox.addEventListener('change', (event) => {
+                    event.stopPropagation();
+                    if (typeof toggle.onToggle === 'function') {
+                        toggle.onToggle(checkbox.checked);
+                    }
+                });
+                toggleWrapper.appendChild(checkbox);
+                toggleRow.appendChild(toggleLabel);
+                toggleRow.appendChild(toggleWrapper);
+                sectionBody.appendChild(toggleRow);
+                toggleViews.push({ toggle, checkbox });
+            });
         });
 
         function update(info = {}) {

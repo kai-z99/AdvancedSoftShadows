@@ -3,7 +3,6 @@ function setShadowResolution(size) {
     currentShadowRes = size;
     recreateShadowPassRenderTargets();
     const idx = SHADOW_RES_OPTIONS.indexOf(size);
-    if (idx !== -1) shadowResIndex = idx;
     console.log(`Shadow resolution set to ${currentShadowRes}x${currentShadowRes}`);
     updateShadowUI();
 }
@@ -73,10 +72,32 @@ function setShadowFar(value) {
 
 function setLightRadius(value) {
     const clamped = Math.min(Math.max(value, LIGHT_RADIUS_MIN), LIGHT_RADIUS_MAX);
-    if (Math.abs(clamped - uOrbRadius.value) < LIGHT_RADIUS_EPS) return;
-    uOrbRadius.value = clamped;
-    sphere.scale.setScalar(uOrbRadius.value);
-    console.log("Light radius: " + uOrbRadius.value.toFixed(2));
+    if (Math.abs(clamped - uLightRadius.value) < LIGHT_RADIUS_EPS) return;
+    uLightRadius.value = clamped;
+    sphere.scale.setScalar(uLightRadius.value);
+    console.log("Light radius: " + uLightRadius.value.toFixed(2));
+    updateShadowUI();
+}
+
+function setLightBrightness(value) {
+    const clamped = Math.min(Math.max(value, LIGHT_BRIGHTNESS_MIN), LIGHT_BRIGHTNESS_MAX);
+    if (Math.abs(clamped - lightBrightness) < LIGHT_BRIGHTNESS_EPS) return;
+    lightBrightness = clamped;
+    if (sphereLight) {
+        sphereLight.intensity = clamped;
+    }
+    console.log("Light brightness: " + lightBrightness.toFixed(2));
+    updateShadowUI();
+}
+
+function setLightAttenuationRadius(value) {
+    const clamped = Math.min(Math.max(value, LIGHT_ATTENUATION_MIN), LIGHT_ATTENUATION_MAX);
+    if (Math.abs(clamped - lightAttenuationRadius) < LIGHT_ATTENUATION_EPS) return;
+    lightAttenuationRadius = clamped;
+    if (sphereLight) {
+        sphereLight.distance = clamped;
+    }
+    console.log("Light attenuation radius: " + lightAttenuationRadius.toFixed(1));
     updateShadowUI();
 }
 
@@ -87,7 +108,7 @@ function updateShadowUI(info) {
 
 function getShadowUIControls() {
     const modeValues = Array.from({ length: shadowModeNames.length - 1 }, (_, idx) => idx + 1);
-    const controls = [
+    const shadowControls = [
         createDiscreteControl({
             key: 'shadowType',
             label: 'Shadow Method',
@@ -154,18 +175,6 @@ function getShadowUIControls() {
             eps: BIAS_EPS,
             formatValue: (value) => value.toFixed(4),
         }),
-        createNumericControl({
-            key: 'lightRadius',
-            label: 'Light Radius',
-            getValue: () => uOrbRadius.value,
-            setValue: setLightRadius,
-            step: LIGHT_RADIUS_STEP,
-            min: LIGHT_RADIUS_MIN,
-            max: LIGHT_RADIUS_MAX,
-            defaultValue: DEFAULT_LIGHT_RADIUS,
-            eps: LIGHT_RADIUS_EPS,
-            formatValue: (value) => value.toFixed(2),
-        }),
         createDiscreteControl({
             key: 'poissonSamples',
             label: 'Poisson Samples',
@@ -186,6 +195,46 @@ function getShadowUIControls() {
         }),
     ];
 
+    const lightControls = [
+        createNumericControl({
+            key: 'lightBrightness',
+            label: 'Brightness',
+            getValue: () => lightBrightness,
+            setValue: setLightBrightness,
+            step: LIGHT_BRIGHTNESS_STEP,
+            min: LIGHT_BRIGHTNESS_MIN,
+            max: LIGHT_BRIGHTNESS_MAX,
+            defaultValue: DEFAULT_LIGHT_BRIGHTNESS,
+            eps: LIGHT_BRIGHTNESS_EPS,
+            formatValue: (value) => value.toFixed(2),
+        }),
+        createNumericControl({
+            key: 'lightAttenuation',
+            label: 'Atten Radius',
+            getValue: () => lightAttenuationRadius,
+            setValue: setLightAttenuationRadius,
+            step: LIGHT_ATTENUATION_STEP,
+            min: LIGHT_ATTENUATION_MIN,
+            max: LIGHT_ATTENUATION_MAX,
+            defaultValue: DEFAULT_LIGHT_ATTENUATION,
+            eps: LIGHT_ATTENUATION_EPS,
+            formatValue: (value) => value.toFixed(1),
+            valueMinWidth: '90px',
+        }),
+        createNumericControl({
+            key: 'lightRadius',
+            label: 'Light Radius',
+            getValue: () => uLightRadius.value,
+            setValue: setLightRadius,
+            step: LIGHT_RADIUS_STEP,
+            min: LIGHT_RADIUS_MIN,
+            max: LIGHT_RADIUS_MAX,
+            defaultValue: DEFAULT_LIGHT_RADIUS,
+            eps: LIGHT_RADIUS_EPS,
+            formatValue: (value) => value.toFixed(2),
+        }),
+    ];
+
     const toggles = [
         createToggleControl({
             key: 'shadowDebug',
@@ -198,7 +247,19 @@ function getShadowUIControls() {
         }),
     ];
 
-    return { controls, toggles };
+    return {
+        sections: [
+            {
+                title: 'Shadow Settings',
+                controls: shadowControls,
+                toggles,
+            },
+            {
+                title: 'Light Settings',
+                controls: lightControls,
+            },
+        ],
+    };
 }
 
 function getMaxShadowNear() {

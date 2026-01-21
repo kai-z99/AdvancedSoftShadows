@@ -127,4 +127,23 @@ function renderShadowMap() {
     }
 }
 
+function renderShadowDebugOverlay(renderer) {
+        if (!renderer) return;
+        if (!showShadowDebug || !shadowCubeRT) return;
+        if (!shadowDebugMaterial || !shadowDebugMaterial.vertexShader || !shadowDebugMaterial.fragmentShader) return;
 
+        const size = Math.min(220, Math.floor(Math.min(window.innerWidth, window.innerHeight) * 0.35));
+        const padding = 12;
+        const renderSize = renderer.getSize(new THREE.Vector2());
+        const x = renderSize.x - size - padding;
+        const y = padding;
+
+        renderer.setScissorTest(true);
+        renderer.setViewport(x, y, size, size);
+        renderer.setScissor(x, y, size, size);
+        renderer.clearDepth();
+        renderer.render(shadowDebugScene, shadowDebugCamera);
+        renderer.setScissorTest(false);
+        renderer.setViewport(0, 0, renderSize.x, renderSize.y);
+        renderer.setScissor(0, 0, renderSize.x, renderSize.y);
+}

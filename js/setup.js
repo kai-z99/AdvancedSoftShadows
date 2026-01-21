@@ -2,7 +2,7 @@
 
 // Shared uniforms and render state
 const uOrbPosition   = { type: 'v3', value: new THREE.Vector3(0.0, 20.0, -15.0) };
-const uOrbRadius     = { value: DEFAULT_LIGHT_RADIUS };
+const uLightRadius     = { value: DEFAULT_LIGHT_RADIUS };
 const uPCFRadius     = { value: DEFAULT_PCF_RADIUS };
 const uPoissonSamples = { value: DEFAULT_POISSON_SAMPLES };
 const uBlockerSamples = { value: DEFAULT_PCSS_BLOCKER_SAMPLES };
@@ -10,17 +10,18 @@ const uShadowType    = { value: 1 };
 const uShadowNear    = { value: DEFAULT_SHADOW_NEAR };
 const uShadowFar     = { value: DEFAULT_SHADOW_FAR };
 const uShadowBias    = { value: DEFAULT_SHADOW_BIAS };
-const uShadowCube = { value: null }; // samplerCube
+const uShadowCube = { value: null }; // set in recreateShadowPassRenderTargets()
 
+//shadow rts
 let shadowCubeRT = null;
 let shadowCubeBlurRT = null;
-let currentShadowRes = BASE_SHADOW_RES;
-let shadowResIndex = Math.max(0, SHADOW_RES_OPTIONS.indexOf(BASE_SHADOW_RES));
+let currentShadowRes = BASE_SHADOW_RES; //res of rt
 let showShadowDebug = false;
 
 let ui = null;
 let keyboard = null;
 
+//scene materials
 let armadilloMaterial = null;
 let floorMaterial = null;
 let sphereMaterial = null;
@@ -28,17 +29,22 @@ let pointShadowMaterial = null;
 let blurMaterial = null;
 let shadowDebugMaterial = null;
 
+//2 tap blur scene for variance shadow map
 let blurScene = null;
 let blurCamera = null;
 let blurPlane = null;
 
+//shadow debug overlay
 let shadowDebugScene = null;
 let shadowDebugCamera = null;
 let shadowDebugPlane = null;
 
+//light sphere
 let sphereGeometry = null;
 let sphere = null;
 let sphereLight = null;
+let lightBrightness = DEFAULT_LIGHT_BRIGHTNESS; //dont need this as a uniform since its not used in our shaders
+let lightAttenuationRadius = DEFAULT_LIGHT_ATTENUATION; //same here
 
 
 /**
@@ -157,14 +163,14 @@ function initMaterials() {
         sphereMaterial = new THREE.ShaderMaterial({
                 uniforms: {
                         orbPosition: uOrbPosition,
-                        orbRadius: uOrbRadius,
+                        orbRadius: uLightRadius,
                 }
         });
 
         pointShadowMaterial = new THREE.ShaderMaterial({
                 uniforms: {
                         lightPos:    uOrbPosition,
-                        orbRadius: uOrbRadius,
+                        orbRadius: uLightRadius,
                         nearPlane: uShadowNear,
                         farPlane:    uShadowFar,
                 }
@@ -232,7 +238,7 @@ function loadSceneObjects(scene) {
     */
     
 
-    const floorGeometry = new THREE.PlaneBufferGeometry(500.0, 500.0);
+    const floorGeometry = new THREE.PlaneBufferGeometry(250.0, 250.0);
     floorGeometry.setAttribute('uv2', new THREE.BufferAttribute(floorGeometry.attributes.uv.array, 2));
     const floor = new THREE.Mesh(floorGeometry, floorMaterial);
     floor.rotation.x = -Math.PI / 2.0;
@@ -254,13 +260,16 @@ function loadSceneObjects(scene) {
     if (!sphere) {
             sphere = new THREE.Mesh(sphereGeometry, sphereMaterial);
             sphere.position.set(0.0, 0.0, 0.0);
-            sphere.scale.setScalar(uOrbRadius.value);
+            sphere.scale.setScalar(uLightRadius.value);
             scene.add(sphere);
     }
 
     if (!sphereLight) {
-            sphereLight = new THREE.PointLight(0xffffff, 2.5, 500);
+            sphereLight = new THREE.PointLight(0xffffff, lightBrightness, lightAttenuationRadius);
             scene.add(sphereLight);
+    } else {
+            sphereLight.intensity = lightBrightness;
+            sphereLight.distance = lightAttenuationRadius;
     }
 }
 
@@ -314,7 +323,7 @@ function injectPointShadowsIntoStandardMaterial(mat, shadowCommon) {
             shader.uniforms.pcfRadius              = uPCFRadius;
             shader.uniforms.poissonSamples         = uPoissonSamples;
             shader.uniforms.shadowType             = uShadowType;
-            shader.uniforms.orbRadius              = uOrbRadius;
+            shader.uniforms.lightRadius              = uLightRadius;
             shader.uniforms.pcssBlockerSamples     = uBlockerSamples;
             mat.userData.shadowShader              = shader;
 
@@ -340,7 +349,7 @@ function injectPointShadowsIntoStandardMaterial(mat, shadowCommon) {
                     uniform float shadowBias;
                     uniform float pcfRadius;
                     uniform int shadowType;
-                    uniform float orbRadius;
+                    uniform float lightRadius;
                     uniform int poissonSamples;
                     uniform int pcssBlockerSamples;
 
@@ -354,7 +363,7 @@ function injectPointShadowsIntoStandardMaterial(mat, shadowCommon) {
                     if (shadowType == 1) shadow = shadowFactorHard(shadowCube, lightPos, shadowNear, shadowFar, shadowBias, vWorldPos);
                     else if (shadowType == 2) shadow = shadowFactorPCF(shadowCube, lightPos, shadowNear, shadowFar, shadowBias, vWorldPos, pcfRadius, poissonSamples);
                     else if (shadowType == 3) shadow = shadowFactorVariance(shadowCube, lightPos, shadowNear, shadowFar, shadowBias, vWorldPos);
-                    else if (shadowType == 4) shadow = shadowFactorPCSS(shadowCube, lightPos, shadowNear, shadowFar, shadowBias, vWorldPos, orbRadius, pcssBlockerSamples, poissonSamples);
+                    else if (shadowType == 4) shadow = shadowFactorPCSS(shadowCube, lightPos, shadowNear, shadowFar, shadowBias, vWorldPos, lightRadius, pcssBlockerSamples, poissonSamples);
                     else shadow = 1.0;
 
                     reflectedLight.directDiffuse *= shadow;
@@ -366,32 +375,10 @@ function injectPointShadowsIntoStandardMaterial(mat, shadowCommon) {
     mat.needsUpdate = true;
 }
 
-function renderShadowDebugOverlay(renderer) {
-        if (!renderer) return;
-        if (!showShadowDebug || !shadowCubeRT) return;
-        if (!shadowDebugMaterial || !shadowDebugMaterial.vertexShader || !shadowDebugMaterial.fragmentShader) return;
-
-        const size = Math.min(220, Math.floor(Math.min(window.innerWidth, window.innerHeight) * 0.35));
-        const padding = 12;
-        const renderSize = renderer.getSize(new THREE.Vector2());
-        const x = renderSize.x - size - padding;
-        const y = padding;
-
-        renderer.setScissorTest(true);
-        renderer.setViewport(x, y, size, size);
-        renderer.setScissor(x, y, size, size);
-        renderer.clearDepth();
-        renderer.render(shadowDebugScene, shadowDebugCamera);
-        renderer.setScissorTest(false);
-        renderer.setViewport(0, 0, renderSize.x, renderSize.y);
-        renderer.setScissor(0, 0, renderSize.x, renderSize.y);
-}
-
 function initializeKeyboard() {
         if (keyboard) return keyboard;
         keyboard = new THREEx.KeyboardState();
         return keyboard;
 }
-
 
 
