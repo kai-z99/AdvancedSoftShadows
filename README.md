@@ -4,6 +4,7 @@ Implemented techniques:
 - **Hard Shadows**
 - **PCF (Percentage Closer Filtering)**
 - **VSM (Variance Shadow Mapping)**
+- **ESM (Exponential Shadow Mapping)**
 - **PCSS (Percentage Closer Soft Shadows)**
 
 ## Features
@@ -107,6 +108,24 @@ $$
 
 **Settings:**
 - Resolution
+- Gaussian blur
+
+---
+### ESM (Exponential Shadow Mapping)
+
+**Implementation:**
+
+**Pros:**
+- Soft shadows with efficient filtering
+- Less dramatic light bleeding than VSM
+- More memory efficient than VSM (only need to store $e^{kz}$ instead of 2 moments)
+
+**Cons:**
+- Light bleeding 
+
+**Settings:**
+- Resolution
+- Gaussian blur
 
 ---
 
@@ -143,5 +162,7 @@ $$
 ## Sources
 - https://developer.nvidia.com/gpugems/gpugems3/part-ii-light-and-shadows/chapter-8-summed-area-variance-shadow-maps
 - https://developer.download.nvidia.com/shaderlibrary/docs/shadow_PCSS.pdf
+- https://developer.download.nvidia.com/assets/gamedev/docs/PCSS_Integration.pdf
 - https://github.com/pboechat/PCSS
+- https://jankautz.com/publications/esm_gi08.pdf
 
