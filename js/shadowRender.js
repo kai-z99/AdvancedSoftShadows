@@ -4,15 +4,25 @@ let shadowCams = [];
 let tempBlurRight = new THREE.Vector3();
 
 function createShadowRenderTarget(res) {
-    return new THREE.WebGLCubeRenderTarget(res, {
-        generateMipmaps: false,
-        minFilter: THREE.LinearFilter,
-        magFilter: THREE.LinearFilter,
-        format: THREE.RGBAFormat,
-        type: THREE.FloatType,
-        depthBuffer: true,
-        stencilBuffer: false,
-    });
+  const supportsFloatRT = renderer.extensions.has('EXT_color_buffer_float');
+  const supportsFloatLinear = renderer.extensions.has('OES_texture_float_linear');
+
+  // prefer float if supported, otherwise half float
+  const type = supportsFloatRT ? THREE.FloatType : THREE.HalfFloatType;
+
+  const filter = (type === THREE.FloatType && !supportsFloatLinear)
+    ? THREE.NearestFilter
+    : THREE.LinearFilter;
+
+  return new THREE.WebGLCubeRenderTarget(res, {
+    generateMipmaps: false,
+    minFilter: filter,
+    magFilter: filter,
+    format: THREE.RGBAFormat,
+    type,
+    depthBuffer: true,
+    stencilBuffer: false,
+  });
 }
 
 function recreateShadowPassRenderTargets() {

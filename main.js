@@ -18,3 +18,5 @@ function update() {
 }
 
 update();
+
+//todo: add multipler uniform for gaussian blur offfset.
