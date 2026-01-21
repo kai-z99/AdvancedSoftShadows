@@ -115,6 +115,15 @@ function setESMK(value)
     updateShadowUI();
 }
 
+function setBleedReduction(value)
+{
+    const clamped = Math.min(Math.max(value, BLEED_REDUCTION_MIN), BLEED_REDUCTION_MAX);
+    if (Math.abs(clamped - uBleedReduction.value) < BLEED_REDUCTION_EPS) return;
+    uBleedReduction.value = clamped;
+    console.log("Bleed Reduction: " + uBleedReduction.value.toFixed(2));
+    updateShadowUI();
+}
+
 function getShadowUIControls() {
     const modeValues = Array.from({ length: shadowModeNames.length - 1 }, (_, idx) => idx + 1);
     const shadowControls = [
@@ -213,6 +222,18 @@ function getShadowUIControls() {
             defaultValue: DEFAULT_ESM_K,
             eps: ESM_K_EPS,
             formatValue: (value) => value.toFixed(1),
+        }),
+        createNumericControl({
+            key: 'bleedReduction',
+            label: 'Bleed Reduction',
+            getValue: () => uBleedReduction.value,
+            setValue: setBleedReduction,
+            step: BLEED_REDUCTION_STEP,
+            min: BLEED_REDUCTION_MIN,
+            max: BLEED_REDUCTION_MAX,
+            defaultValue: DEFAULT_BLEED_REDUCTION,
+            eps: BLEED_REDUCTION_EPS,
+            formatValue: (value) => value.toFixed(2),
         }),
     ];
 

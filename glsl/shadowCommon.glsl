@@ -260,7 +260,7 @@ float shadowFactorVariance(
     float variance = max(m2 - m1 * m1, 1e-5);
     float t = depth01 - m1;
     float pMax = variance / (variance + t * t);
-    pMax = ReduceLightBleeding(pMax, 0.5);
+    pMax = ReduceLightBleeding(pMax, lightBleedReduction);
     return clamp(pMax, 0.0, 1.0);
 }
 

@@ -1,7 +1,7 @@
 'use strict';
 
 // Shadow options and configuration constants
-const shadowModeNames = ['', 'Hard', 'PCF', 'Variance', 'PCSS', 'ESM']; //'' at 0 so the first starts at 1 (uShadowType)
+const shadowModeNames = ['', 'Hard', 'PCF', 'Variance', 'ESM', 'PCSS']; //'' at 0 so the first starts at 1 (uShadowType)
 const BASE_SHADOW_RES = 512;
 const VARIANCE_SHADOW_RES = 512;
 const SHADOW_RES_OPTIONS = [256, BASE_SHADOW_RES, 1024, 2048];
@@ -44,6 +44,13 @@ const ESM_K_MAX = 150.0;
 const DEFAULT_ESM_K = 70.0;
 const ESM_K_STEP = 5.0;
 const ESM_K_EPS = 1e-2;
+
+// bleed reduction
+const BLEED_REDUCTION_MIN = 0.0;
+const BLEED_REDUCTION_MAX = 0.95;
+const BLEED_REDUCTION_STEP = 0.05;
+const DEFAULT_BLEED_REDUCTION = 0.25;
+const BLEED_REDUCTION_EPS = 1e-3;
 
 //light options
 const LIGHT_RADIUS_MIN = 0.0;

@@ -122,7 +122,7 @@ function renderShadowMap() {
     scene.overrideMaterial = oldOverride;
     sphere.visible = oldSphereVisible;
 
-    if (uShadowType.value === 3 || uShadowType.value === 5) {
+    if (uShadowType.value === 3 || uShadowType.value === 4) {
         blurShadowMap();
     }
 }

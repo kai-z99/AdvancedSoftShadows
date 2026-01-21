@@ -11,7 +11,8 @@ const uShadowNear    = { value: DEFAULT_SHADOW_NEAR };
 const uShadowFar     = { value: DEFAULT_SHADOW_FAR };
 const uShadowBias    = { value: DEFAULT_SHADOW_BIAS };
 const uShadowCube = { value: null }; // set in recreateShadowPassRenderTargets()
-const uESMK = { value: DEFAULT_ESM_K}
+const uESMK = { value: DEFAULT_ESM_K };
+const uBleedReduction = { value: DEFAULT_BLEED_REDUCTION };
 
 //shadow rts
 let shadowCubeRT = null;
@@ -327,6 +328,7 @@ function injectPointShadowsIntoStandardMaterial(mat, shadowCommon) {
             shader.uniforms.lightRadius              = uLightRadius;
             shader.uniforms.pcssBlockerSamples     = uBlockerSamples;
             shader.uniforms.ESMK                   = uESMK;
+            shader.uniforms.lightBleedReduction    = uBleedReduction;
             mat.userData.shadowShader              = shader;
 
             shader.vertexShader = shader.vertexShader
@@ -355,6 +357,7 @@ function injectPointShadowsIntoStandardMaterial(mat, shadowCommon) {
                     uniform int poissonSamples;
                     uniform int pcssBlockerSamples;
                     uniform float ESMK;
+                    uniform float lightBleedReduction;
 
             ${shadowCommon}
             `
@@ -366,8 +369,8 @@ function injectPointShadowsIntoStandardMaterial(mat, shadowCommon) {
                     if (shadowType == 1) shadow = shadowFactorHard(shadowCube, lightPos, shadowNear, shadowFar, shadowBias, vWorldPos);
                     else if (shadowType == 2) shadow = shadowFactorPCF(shadowCube, lightPos, shadowNear, shadowFar, shadowBias, vWorldPos, pcfRadius, poissonSamples);
                     else if (shadowType == 3) shadow = shadowFactorVariance(shadowCube, lightPos, shadowNear, shadowFar, shadowBias, vWorldPos);
-                    else if (shadowType == 4) shadow = shadowFactorPCSS(shadowCube, lightPos, shadowNear, shadowFar, shadowBias, vWorldPos, lightRadius, pcssBlockerSamples, poissonSamples);
-                    else if (shadowType == 5) shadow = shadowFactorESM(shadowCube, lightPos, shadowNear, shadowFar, shadowBias, vWorldPos, ESMK);
+                    else if (shadowType == 4) shadow = shadowFactorESM(shadowCube, lightPos, shadowNear, shadowFar, shadowBias, vWorldPos, ESMK);
+                    else if (shadowType == 5) shadow = shadowFactorPCSS(shadowCube, lightPos, shadowNear, shadowFar, shadowBias, vWorldPos, lightRadius, pcssBlockerSamples, poissonSamples);
                     else shadow = 1.0;
 
                     reflectedLight.directDiffuse *= shadow;
@@ -384,5 +387,3 @@ function initializeKeyboard() {
         keyboard = new THREEx.KeyboardState();
         return keyboard;
 }
-
-
