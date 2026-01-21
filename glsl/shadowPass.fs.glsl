@@ -3,6 +3,7 @@
 uniform vec3 lightPos;
 uniform float nearPlane;
 uniform float farPlane;
+uniform float ESMK;
 
 varying vec3 fragPosWorld;
 
@@ -12,6 +13,6 @@ void main() {
         float depth01 = (d - nearPlane) / (farPlane - nearPlane);
         depth01 = clamp(depth01, 0.0, 1.0);
 
-        //d, d^2
-        gl_FragColor = vec4(depth01, depth01 * depth01, 0, 1.0);
+        //d, d^2, 
+        gl_FragColor = vec4(depth01, depth01 * depth01, exp(ESMK * depth01), 1.0);
 }

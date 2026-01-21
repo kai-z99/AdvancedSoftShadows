@@ -1,23 +1,19 @@
 'use strict';
 
 // Shadow options and configuration constants
-const shadowModeNames = ['', 'Hard', 'PCF', 'Variance', 'PCSS'];
+const shadowModeNames = ['', 'Hard', 'PCF', 'Variance', 'PCSS', 'ESM']; //'' at 0 so the first starts at 1 (uShadowType)
 const BASE_SHADOW_RES = 512;
 const VARIANCE_SHADOW_RES = 512;
 const SHADOW_RES_OPTIONS = [256, BASE_SHADOW_RES, 1024, 2048];
 
-const SHADOW_BIAS_STEP = 0.001;
+//bias
 const MIN_SHADOW_BIAS = 0.0005;
 const MAX_SHADOW_BIAS = 0.02;
+const SHADOW_BIAS_STEP = 0.001;
 const DEFAULT_SHADOW_BIAS = 0.0075;
 const BIAS_EPS = 1e-6;
 
-const PCF_RADIUS_MIN = 0.00;
-const PCF_RADIUS_MAX = 1.0;
-const PCF_RADIUS_STEP = 0.1;
-const DEFAULT_PCF_RADIUS = 0.2;
-const PCF_EPS = 1e-6;
-
+//far/near
 const SHADOW_NEAR_MIN = 0.05;
 const SHADOW_NEAR_MAX = 5.0;
 const DEFAULT_SHADOW_NEAR = 0.1;
@@ -28,6 +24,28 @@ const DEFAULT_SHADOW_FAR = 200.0;
 const SHADOW_FAR_STEP = 10.0;
 const SHADOW_MIN_RANGE = 2.0;
 
+//pcf
+const PCF_RADIUS_MIN = 0.00;
+const PCF_RADIUS_MAX = 1.0;
+const PCF_RADIUS_STEP = 0.1;
+const DEFAULT_PCF_RADIUS = 0.2;
+const PCF_EPS = 1e-6;
+
+const POISSON_SAMPLE_OPTIONS = [8, 16, 32, 64];
+const DEFAULT_POISSON_SAMPLES = 32;
+
+//pcss
+const PCSS_BLOCKER_SAMPLE_OPTIONS = [4, 8, 16, 32];
+const DEFAULT_PCSS_BLOCKER_SAMPLES = 16;
+
+//esm
+const ESM_K_MIN = 20.0;
+const ESM_K_MAX = 150.0;
+const DEFAULT_ESM_K = 70.0;
+const ESM_K_STEP = 5.0;
+const ESM_K_EPS = 1e-2;
+
+//light options
 const LIGHT_RADIUS_MIN = 0.0;
 const LIGHT_RADIUS_MAX = 4.0;
 const LIGHT_RADIUS_STEP = 0.1;
@@ -46,11 +64,7 @@ const LIGHT_ATTENUATION_STEP = 10.0;
 const DEFAULT_LIGHT_ATTENUATION = 300.0;
 const LIGHT_ATTENUATION_EPS = 1e-2;
 
-const POISSON_SAMPLE_OPTIONS = [8, 16, 32, 64];
-const DEFAULT_POISSON_SAMPLES = 32;
 
-const PCSS_BLOCKER_SAMPLE_OPTIONS = [4, 8, 16, 32];
-const DEFAULT_PCSS_BLOCKER_SAMPLES = 16;
 
 // Shadow pass math helpers
 const faceDirs = [

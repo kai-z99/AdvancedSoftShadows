@@ -95,7 +95,7 @@ function setupShadows() {
 }
 
 function renderShadowMap() {
-    const lp = uOrbPosition.value;
+    const lp = uLightPosition.value;
     pointShadowMaterial.uniforms.lightPos.value = lp;
 
     const oldSphereVisible = sphere.visible;
@@ -122,7 +122,7 @@ function renderShadowMap() {
     scene.overrideMaterial = oldOverride;
     sphere.visible = oldSphereVisible;
 
-    if (uShadowType.value === 3) {
+    if (uShadowType.value === 3 || uShadowType.value === 5) {
         blurShadowMap();
     }
 }

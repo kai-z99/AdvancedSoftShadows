@@ -106,6 +106,15 @@ function updateShadowUI(info) {
     ui.update(info || {});
 }
 
+function setESMK(value)
+{
+    const clamped = Math.min(Math.max(value, ESM_K_MIN), ESM_K_MAX);
+    if (Math.abs(clamped - uESMK.value) < ESM_K_EPS) return;
+    uESMK.value = clamped;
+    console.log("ESM K: " + uESMK.value.toFixed(2));
+    updateShadowUI();
+}
+
 function getShadowUIControls() {
     const modeValues = Array.from({ length: shadowModeNames.length - 1 }, (_, idx) => idx + 1);
     const shadowControls = [
@@ -192,6 +201,18 @@ function getShadowUIControls() {
             setValue: setPCSSBlockerSamples,
             defaultValue: DEFAULT_PCSS_BLOCKER_SAMPLES,
             formatValue: (value) => value.toString(),
+        }),
+        createNumericControl({
+            key: 'uESMK',
+            label: 'ESM Coefficient',
+            getValue: () => uESMK.value,
+            setValue: setESMK,
+            step: ESM_K_STEP,
+            min: ESM_K_MIN,
+            max: ESM_K_MAX,
+            defaultValue: DEFAULT_ESM_K,
+            eps: ESM_K_EPS,
+            formatValue: (value) => value.toFixed(1),
         }),
     ];
 

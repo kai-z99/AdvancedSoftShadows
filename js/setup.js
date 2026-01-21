@@ -1,7 +1,7 @@
 'use strict';
 
 // Shared uniforms and render state
-const uOrbPosition   = { type: 'v3', value: new THREE.Vector3(0.0, 20.0, -15.0) };
+const uLightPosition   = { type: 'v3', value: new THREE.Vector3(0.0, 20.0, -15.0) };
 const uLightRadius     = { value: DEFAULT_LIGHT_RADIUS };
 const uPCFRadius     = { value: DEFAULT_PCF_RADIUS };
 const uPoissonSamples = { value: DEFAULT_POISSON_SAMPLES };
@@ -11,6 +11,7 @@ const uShadowNear    = { value: DEFAULT_SHADOW_NEAR };
 const uShadowFar     = { value: DEFAULT_SHADOW_FAR };
 const uShadowBias    = { value: DEFAULT_SHADOW_BIAS };
 const uShadowCube = { value: null }; // set in recreateShadowPassRenderTargets()
+const uESMK = { value: DEFAULT_ESM_K}
 
 //shadow rts
 let shadowCubeRT = null;
@@ -162,17 +163,17 @@ function initMaterials() {
 
         sphereMaterial = new THREE.ShaderMaterial({
                 uniforms: {
-                        orbPosition: uOrbPosition,
-                        orbRadius: uLightRadius,
+                        lightPosition: uLightPosition,
+                        lightRadius: uLightRadius,
                 }
         });
 
         pointShadowMaterial = new THREE.ShaderMaterial({
                 uniforms: {
-                        lightPos:    uOrbPosition,
-                        orbRadius: uLightRadius,
+                        lightPos: uLightPosition,
                         nearPlane: uShadowNear,
-                        farPlane:    uShadowFar,
+                        farPlane: uShadowFar,
+                        ESMK: uESMK,
                 }
         });
 
@@ -277,8 +278,8 @@ function loadShadowShaders() {
     const shaderFiles = [
             'glsl/sphere.vs.glsl',
             'glsl/sphere.fs.glsl',
-            'glsl/pointShadow.vs.glsl',
-            'glsl/pointShadow.fs.glsl',
+            'glsl/shadowPass.vs.glsl',
+            'glsl/shadowPass.fs.glsl',
             'glsl/shadowCommon.glsl',
             'glsl/shadowBlur.vs.glsl',
             'glsl/shadowBlur.fs.glsl',
@@ -291,8 +292,8 @@ function loadShadowShaders() {
             sphereMaterial.fragmentShader = shaders['glsl/sphere.fs.glsl'];
             sphereMaterial.needsUpdate = true; 
 
-            pointShadowMaterial.vertexShader     = shaders['glsl/pointShadow.vs.glsl'];
-            pointShadowMaterial.fragmentShader = shaders['glsl/pointShadow.fs.glsl'];
+            pointShadowMaterial.vertexShader     = shaders['glsl/shadowPass.vs.glsl'];
+            pointShadowMaterial.fragmentShader = shaders['glsl/shadowPass.fs.glsl'];
             pointShadowMaterial.needsUpdate = true;
 
             blurMaterial.vertexShader = shaders['glsl/shadowBlur.vs.glsl'];
@@ -319,12 +320,13 @@ function injectPointShadowsIntoStandardMaterial(mat, shadowCommon) {
             shader.uniforms.shadowNear             = uShadowNear;
             shader.uniforms.shadowFar              = uShadowFar;
             shader.uniforms.shadowBias             = uShadowBias;
-            shader.uniforms.lightPos               = uOrbPosition;
+            shader.uniforms.lightPos               = uLightPosition;
             shader.uniforms.pcfRadius              = uPCFRadius;
             shader.uniforms.poissonSamples         = uPoissonSamples;
             shader.uniforms.shadowType             = uShadowType;
             shader.uniforms.lightRadius              = uLightRadius;
             shader.uniforms.pcssBlockerSamples     = uBlockerSamples;
+            shader.uniforms.ESMK                   = uESMK;
             mat.userData.shadowShader              = shader;
 
             shader.vertexShader = shader.vertexShader
@@ -352,6 +354,7 @@ function injectPointShadowsIntoStandardMaterial(mat, shadowCommon) {
                     uniform float lightRadius;
                     uniform int poissonSamples;
                     uniform int pcssBlockerSamples;
+                    uniform float ESMK;
 
             ${shadowCommon}
             `
@@ -364,6 +367,7 @@ function injectPointShadowsIntoStandardMaterial(mat, shadowCommon) {
                     else if (shadowType == 2) shadow = shadowFactorPCF(shadowCube, lightPos, shadowNear, shadowFar, shadowBias, vWorldPos, pcfRadius, poissonSamples);
                     else if (shadowType == 3) shadow = shadowFactorVariance(shadowCube, lightPos, shadowNear, shadowFar, shadowBias, vWorldPos);
                     else if (shadowType == 4) shadow = shadowFactorPCSS(shadowCube, lightPos, shadowNear, shadowFar, shadowBias, vWorldPos, lightRadius, pcssBlockerSamples, poissonSamples);
+                    else if (shadowType == 5) shadow = shadowFactorESM(shadowCube, lightPos, shadowNear, shadowFar, shadowBias, vWorldPos, ESMK);
                     else shadow = 1.0;
 
                     reflectedLight.directDiffuse *= shadow;
