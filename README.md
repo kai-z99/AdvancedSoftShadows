@@ -162,5 +162,7 @@ $$
 ## Sources
 - https://developer.nvidia.com/gpugems/gpugems3/part-ii-light-and-shadows/chapter-8-summed-area-variance-shadow-maps
 - https://developer.download.nvidia.com/shaderlibrary/docs/shadow_PCSS.pdf
+- https://developer.download.nvidia.com/assets/gamedev/docs/PCSS_Integration.pdf
 - https://github.com/pboechat/PCSS
+- https://jankautz.com/publications/esm_gi08.pdf
 
