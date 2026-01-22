@@ -158,11 +158,40 @@ function initMaterials() {
                 roughness: 0.65,
         });
 
+        /*
         floorMaterial = new THREE.MeshStandardMaterial({
                 color: 0x888888,
                 metalness: 0.0,
                 roughness: 0.9,
         });
+        */
+
+        const textureLoader = new THREE.TextureLoader();
+        const limestoneTextureDir = 'images/flaking-limestone1-bl/flaking-limestone1-bl';
+        const floorColorMap = textureLoader.load(`${limestoneTextureDir}/flaking-limestone1-albedo.png`);
+        const floorNormalMap = textureLoader.load(`${limestoneTextureDir}/flaking-limestone1-normal.png`);
+        const floorRoughnessMap = textureLoader.load(`${limestoneTextureDir}/flaking-limestone1-roughness.png`);
+        const floorAoMap = textureLoader.load(`${limestoneTextureDir}/flaking-limestone1-ao.png`);
+        const floorMetalnessMap = textureLoader.load(`${limestoneTextureDir}/flaking-limestone1-metalness.png`);
+
+        const floorRepeat = 3;
+        [floorColorMap, floorNormalMap, floorRoughnessMap, floorAoMap, floorMetalnessMap].forEach((tex) => {
+                tex.wrapS = THREE.RepeatWrapping;
+                tex.wrapT = THREE.RepeatWrapping;
+                tex.repeat.set(floorRepeat, floorRepeat);
+        });
+
+        floorMaterial = new THREE.MeshStandardMaterial({
+                map: floorColorMap,
+                normalMap: floorNormalMap,
+                roughnessMap: floorRoughnessMap,
+                aoMap: floorAoMap,
+                metalnessMap: floorMetalnessMap,
+                metalness: 1.0,
+                roughness: 1.0,
+        });
+
+        
 
         sphereMaterial = new THREE.ShaderMaterial({
                 uniforms: {
