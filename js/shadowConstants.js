@@ -28,7 +28,7 @@ const SHADOW_MIN_RANGE = 2.0;
 const PCF_RADIUS_MIN = 0.00;
 const PCF_RADIUS_MAX = 1.0;
 const PCF_RADIUS_STEP = 0.1;
-const PCF_RADIUS_DEFAULT = 0.2;
+const PCF_RADIUS_DEFAULT = 0.5;
 const PCF_EPS = 1e-6;
 
 const POISSON_SAMPLE_OPTIONS = [8, 16, 32, 64];
