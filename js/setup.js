@@ -1,7 +1,7 @@
 'use strict';
 
 // Shared uniforms and render state
-const uLightPosition   = { type: 'v3', value: new THREE.Vector3(0.0, 70.0, -25.0) };
+const uLightPosition   = { type: 'v3', value: new THREE.Vector3(0.0, 75.0, -0.0) };
 const uLightRadius     = { value: LIGHT_RADIUS_DEFAULT };
 const uPCFRadius     = { value: PCF_RADIUS_DEFAULT };
 const uPoissonSamples = { value: POISSON_SAMPLES_DEFAULT };
@@ -78,7 +78,7 @@ function setup() {
 
     // Set up the camera.
     const camera = new THREE.PerspectiveCamera(30.0, 1.0, 0.1, 1000.0); // view angle, aspect ratio, near, far
-    camera.position.set(0.0, 30.0, 55.0);
+    camera.position.set(0.0, 200.0, 275.0);
     camera.lookAt(scene.position);
     scene.add(camera);
 
@@ -289,10 +289,34 @@ function loadSceneObjects(scene) {
 
 
     loadAndPlaceOBJ('obj/trex.obj', armadilloMaterial, function (armadillo) {
-            armadillo.position.set(0.0, 30, -8.0);
-            armadillo.rotation.x = -Math.PI
-            armadillo.scale.set(1.0, 1.0, 1.0);
-            scene.add(armadillo);
+        // 1) Find the model's center
+        const box = new THREE.Box3().setFromObject(armadillo);
+        const center = box.getCenter(new THREE.Vector3());
+
+        // 2) Create a pivot group (this becomes the new rotation point)
+        const pivot = new THREE.Group();
+        scene.add(pivot);
+
+        // 3) Put the pivot where you want the model to be in the scene
+        pivot.position.set(0, 40, 0);
+
+        // 4) Move the model so its center sits at the pivot origin
+        armadillo.position.sub(center);
+
+        // 5) Scale model (if needed)
+        armadillo.scale.set(1.0, 1.0, 1.0);
+
+        // 6) Add to pivot and rotate pivot in order X -> Y -> Z
+        pivot.add(armadillo);
+
+        const X = new THREE.Vector3(1, 0, 0);
+        const Y = new THREE.Vector3(0, 1, 0);
+        const Z = new THREE.Vector3(0, 0, 1);
+
+        pivot.rotateOnWorldAxis(X, Math.PI / -2); 
+        pivot.rotateOnWorldAxis(Y, Math.PI / 2);
+        pivot.rotateOnWorldAxis(X, Math.PI / -2); 
+        
     });
 
     if (!sphereGeometry) {
