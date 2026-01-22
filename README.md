@@ -77,12 +77,12 @@ Average the results to create a softer edge
 ---
 
 ### VSM (Variance Shadow Mapping)
-VSM stores moments of depth (`E[z]` and `E[z²]`) to estimate shadow probability, and uses that number directly as the shadowing value.
+VSM stores moments of depth (`E[z]` and `E[z²]`) to estimate shadow probability, and uses that number directly as the shadowing value. This method allows filtering directly on the shadowmap.
 
 **Implementation:**
 Store depth moments in the shadow map. In this case it will just be the depth and depth squared because of the next step.
-Apply a 2 tap gaussian blur to the shadowmap and optionally create mipmaps.
-Note that because of the blur:
+Apply filtering like a 2 tap gaussian blur to the shadowmap and optionally create mipmaps.
+Note that:
 
 $$
 M_1 = d \approx E[z] = \int_{-\infty}^{\infty} z\,p(z)\,dz
@@ -107,16 +107,52 @@ $$
 
 **Cons:**
 - Light bleeding (objects incorrectly appear lit through shadows)
+- Gaussian blur / mipmaps can be expensive
 
 **Settings:**
 - Resolution
 - Gaussian blur sigma/radius
 - Bleed reduction
-
+- Bias
 ---
 ### ESM (Exponential Shadow Mapping)
+ESM replaces the hard shadow step function with a exponential approximation, making the shadowmap filterable just like VSM.
 
 **Implementation:**
+Instead of depth $z$, in your shadowmap, store 
+
+$$
+E = e^{kz} 
+$$
+
+where $k$ is a tunable constant.
+Then apply filtering to the shadowmap in the form of gaussian blur and mipmaps. Then during shading, evaluate
+
+$$
+S = e^{-kd}E
+$$
+
+and use $S$ directly as the shadow value. This is because for hard shadows:
+
+$$
+f(d,z)=
+\begin{cases}
+1 & \text{if } d \le z \\
+0 & \text{if } d > z
+\end{cases}
+$$
+
+Can be approximated in the domain
+
+$$
+\delta = d(x) - z(p) \geq 0
+$$
+
+as
+
+$$
+f(d,z) = \lim_{\alpha \rightarrow \infty}e^{-\alpha(d - z)} \approx e^{-k(d-z)} = e^{-kd}e^{kz}
+$$
 
 **Pros:**
 - Soft shadows with efficient filtering
@@ -124,13 +160,15 @@ $$
 - More memory efficient than VSM (only need to store $e^{kz}$ instead of 2 moments)
 
 **Cons:**
-- Light bleeding 
+- Light bleeding
+- Gaussian blur / mipmaps can be expensive
 
 **Settings:**
 - Resolution
 - Gaussian blur sigma/radius
 - Bleed reduction
 - K coefficient
+- Bias
 ---
 
 ### PCSS (Percentage Closer Soft Shadows)
