@@ -110,7 +110,8 @@ $$
 
 **Settings:**
 - Resolution
-- Gaussian blur
+- Gaussian blur sigma/radius
+- Bleed reduction
 
 ---
 ### ESM (Exponential Shadow Mapping)
@@ -127,8 +128,9 @@ $$
 
 **Settings:**
 - Resolution
-- Gaussian blur
-
+- Gaussian blur sigma/radius
+- Bleed reduction
+- K coefficient
 ---
 
 ### PCSS (Percentage Closer Soft Shadows)
