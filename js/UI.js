@@ -412,7 +412,61 @@ function createToggleControl({
     };
 }
 
-function createPerformanceTracker() {
+//made from chatgpt
+function prettifyGpuLabel(raw) {
+    if (!raw || typeof raw !== "string") return "Unknown GPU";
+
+    let s = raw.trim();
+
+    // Remove a leading "GPU:" if you included it in your UI string
+    s = s.replace(/^GPU:\s*/i, "");
+
+    // Remove ANGLE wrapper if present
+    if (s.startsWith("ANGLE (") && s.endsWith(")")) {
+        s = s.slice("ANGLE (".length, -1);
+
+        // If it has commas, take the "actual gpu name" chunk
+        const parts = s.split(",").map(p => p.trim());
+        if (parts.length >= 2) s = parts[1];
+    }
+
+    // Remove hex device id (0x....)
+    s = s.replace(/\s*\(0x[0-9a-fA-F]+\)\s*/g, " ");
+
+    // If "Direct3D"/"Vulkan"/etc is glued to the GPU name, insert a space
+    s = s.replace(/(Graphics)(Direct3D|Vulkan|OpenGL|Metal)/i, "$1 $2");
+
+    // Cut off any backend / shader model junk
+    s = s.replace(/\s*(Direct3D|Vulkan|OpenGL|Metal).*$/i, "");
+
+    // Extra cleanup
+    s = s.replace(/\s+/g, " ").trim();
+
+    return s || "Unknown GPU";
+}
+
+function getGPUDescription(renderer) {
+    let raw = null;
+
+    if (renderer && typeof renderer.getContext === "function") {
+        const gl = renderer.getContext();
+        if (gl && typeof gl.getParameter === "function") {
+            const debugInfo = gl.getExtension?.("WEBGL_debug_renderer_info");
+            raw = debugInfo
+                ? gl.getParameter(debugInfo.UNMASKED_RENDERER_WEBGL)
+                : gl.getParameter(gl.RENDERER);
+        }
+    }
+
+    return prettifyGpuLabel(raw) || "Unknown GPU";
+}
+
+function getCPUDescription() {
+    const threads = navigator.hardwareConcurrency;
+    return threads ? `${threads} threads` : "Unknown CPU";
+}
+
+function createPerformanceTracker(renderer) {
     const tracker = document.createElement('div');
     Object.assign(tracker.style, {
         position: 'absolute',
@@ -428,9 +482,13 @@ function createPerformanceTracker() {
         letterSpacing: '0.03em',
         pointerEvents: 'none',
         zIndex: 20,
+        whiteSpace: 'pre',
     });
-    tracker.textContent = 'FPS: -- | Frame: -- ms';
+    tracker.textContent = 'FPS: -- | Frame: -- ms\nGPU: Detecting...\nCPU: Detecting...';
     document.body.appendChild(tracker);
+
+    const gpuLabel = getGPUDescription(renderer)
+    const cpuLabel = getCPUDescription();
 
     let frameCount = 0;
     let frameTimeAccum = 0;
@@ -443,7 +501,7 @@ function createPerformanceTracker() {
         if (elapsed < 250) return;
 
         const fps = frameCount > 0 ? (frameCount * 1000) / elapsed : 0;
-        tracker.textContent = `FPS: ${fps.toFixed(1)} | Frame: ${avgFrameTime.toFixed(2)} ms`;
+        tracker.textContent = `FPS: ${fps.toFixed(1)} | Frame: ${avgFrameTime.toFixed(2)} ms\nGPU: ${gpuLabel}\nCPU: ${cpuLabel}`;
 
         lastUpdate = now;
         frameCount = 0;

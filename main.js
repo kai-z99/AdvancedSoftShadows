@@ -8,7 +8,7 @@ initializeSceneContent(scene);
 initializeShadowUI();
 initializeKeyboard();
 setupShadows();
-const performanceTracker = createPerformanceTracker();
+const performanceTracker = createPerformanceTracker(renderer);
 
 function update(now) {
     requestAnimationFrame(update);
@@ -21,6 +21,5 @@ function update(now) {
 
 
 update();
-
 
 
