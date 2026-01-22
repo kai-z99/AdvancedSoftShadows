@@ -435,26 +435,39 @@ function createPerformanceTracker() {
     let frameCount = 0;
     let frameTimeAccum = 0;
     let lastUpdate = performance.now();
+    let lastTime = null;
 
     function updateDisplay(avgFrameTime) {
         const now = performance.now();
         const elapsed = now - lastUpdate;
-        if (elapsed < 250) {
-            return;
-        }
+        if (elapsed < 250) return;
+
         const fps = frameCount > 0 ? (frameCount * 1000) / elapsed : 0;
         tracker.textContent = `FPS: ${fps.toFixed(1)} | Frame: ${avgFrameTime.toFixed(2)} ms`;
+
         lastUpdate = now;
         frameCount = 0;
         frameTimeAccum = 0;
     }
 
-    return {
-        trackFrame(frameDurationMs) {
-            frameCount += 1;
-            frameTimeAccum += frameDurationMs;
-            const avgFrameTime = frameCount > 0 ? frameTimeAccum / frameCount : 0;
-            updateDisplay(avgFrameTime);
-        },
-    };
+    function tick(now) {
+        // rAF gives us `now`, but we fall back just in case
+        if (typeof now !== 'number') now = performance.now();
+
+        if (lastTime === null) {
+            lastTime = now;
+            return;
+        }
+
+        const dt = now - lastTime;
+        lastTime = now;
+
+        frameCount += 1;
+        frameTimeAccum += dt;
+
+        updateDisplay(frameTimeAccum / frameCount);
+    }
+
+    return { tick };
 }
+

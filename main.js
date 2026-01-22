@@ -10,18 +10,15 @@ initializeKeyboard();
 setupShadows();
 const performanceTracker = createPerformanceTracker();
 
-function update() {
-    const frameStart = performance.now();
-
-    checkKeyboard();
+function update(now) {
     requestAnimationFrame(update);
+    checkKeyboard();
     renderShadowMap();
     renderer.render(scene, camera);
     renderShadowDebugOverlay(renderer);
-
-    const frameEnd = performance.now();
-    performanceTracker.trackFrame(frameEnd - frameStart);
+    performanceTracker.tick(now); 
 }
+
 
 update();
 
