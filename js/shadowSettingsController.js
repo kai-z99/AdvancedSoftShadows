@@ -10,7 +10,12 @@ function setShadowResolution(size) {
 function setShadowType(newType) {
     const clamped = Math.min(Math.max(newType, 1), shadowModeNames.length - 1);
     if (uShadowType.value === clamped) return;
+    const prevUseMipmaps = shouldUseShadowMipmaps();
     uShadowType.value = clamped;
+    const nextUseMipmaps = shouldUseShadowMipmaps();
+    if (prevUseMipmaps !== nextUseMipmaps) {
+        recreateShadowPassRenderTargets();
+    }
     const mode = shadowModeNames[uShadowType.value] || `Mode ${uShadowType.value}`;
     console.log("Shadow type changed to: " + mode);
     updateShadowUI();
@@ -142,9 +147,23 @@ function setVarianceBlurSigma(value)
     updateShadowUI();
 }
 
+function setShadowMipmapsEnabled(enabled)
+{
+    if (enableShadowMipmaps === enabled) return;
+    const prevUseMipmaps = shouldUseShadowMipmaps();
+    enableShadowMipmaps = enabled;
+    const nextUseMipmaps = shouldUseShadowMipmaps();
+    if (prevUseMipmaps !== nextUseMipmaps) {
+        recreateShadowPassRenderTargets();
+    }
+    console.log("Shadow mipmaps: " + (enabled ? 'Enabled' : 'Disabled'));
+    updateShadowUI();
+}
+
 function getShadowUIControls() {
     const modeValues = Array.from({ length: shadowModeNames.length - 1 }, (_, idx) => idx + 1);
-    const shadowControls = [
+
+    const generalControls = [
         createDiscreteControl({
             key: 'shadowType',
             label: 'Shadow Method',
@@ -162,18 +181,6 @@ function getShadowUIControls() {
             defaultValue: BASE_SHADOW_RES,
             formatValue: (value) => `${value} x ${value}`,
             valueMinWidth: '90px',
-        }),
-        createNumericControl({
-            key: 'pcfRadius',
-            label: 'PCF Radius',
-            getValue: () => uPCFRadius.value,
-            setValue: setPCFRadius,
-            step: PCF_RADIUS_STEP,
-            min: PCF_RADIUS_MIN,
-            max: PCF_RADIUS_MAX,
-            defaultValue: DEFAULT_PCF_RADIUS,
-            eps: PCF_EPS,
-            formatValue: (value) => value.toFixed(2),
         }),
         createNumericControl({
             key: 'shadowNear',
@@ -201,7 +208,7 @@ function getShadowUIControls() {
         }),
         createNumericControl({
             key: 'shadowBias',
-            label: 'Bias',
+            label: 'Shadow Bias',
             getValue: () => uShadowBias.value,
             setValue: setShadowBias,
             step: SHADOW_BIAS_STEP,
@@ -210,6 +217,21 @@ function getShadowUIControls() {
             defaultValue: DEFAULT_SHADOW_BIAS,
             eps: BIAS_EPS,
             formatValue: (value) => value.toFixed(4),
+        }),
+    ];
+
+    const samplingControls = [
+        createNumericControl({
+            key: 'pcfRadius',
+            label: 'PCF Radius',
+            getValue: () => uPCFRadius.value,
+            setValue: setPCFRadius,
+            step: PCF_RADIUS_STEP,
+            min: PCF_RADIUS_MIN,
+            max: PCF_RADIUS_MAX,
+            defaultValue: DEFAULT_PCF_RADIUS,
+            eps: PCF_EPS,
+            formatValue: (value) => value.toFixed(2),
         }),
         createDiscreteControl({
             key: 'poissonSamples',
@@ -229,6 +251,39 @@ function getShadowUIControls() {
             defaultValue: DEFAULT_PCSS_BLOCKER_SAMPLES,
             formatValue: (value) => value.toString(),
         }),
+    ];
+
+    const filteringControls = [
+        createDiscreteControl({
+            key: 'varianceBlurWidth',
+            label: 'Blur Width',
+            values: VARIANCE_BLUR_WIDTH_OPTIONS,
+            getValue: () => uVarianceBlurWidth.value,
+            setValue: setVarianceBlurWidth,
+            defaultValue: DEFAULT_VARIANCE_BLUR_WIDTH,
+            formatValue: (value) => value.toString(),
+        }),
+        createDiscreteControl({
+            key: 'varianceBlurSigma',
+            label: 'Blur Sigma',
+            values: VARIANCE_BLUR_SIGMA_OPTIONS,
+            getValue: () => uVarianceBlurSigma.value,
+            setValue: setVarianceBlurSigma,
+            defaultValue: DEFAULT_VARIANCE_BLUR_SIGMA,
+            formatValue: (value) => value.toFixed(1),
+        }),
+    ];
+
+    const filteringToggles = [
+        createToggleControl({
+            key: 'shadowMipmaps',
+            label: 'Generate Mipmaps',
+            getValue: () => enableShadowMipmaps,
+            setValue: setShadowMipmapsEnabled,
+        }),
+    ];
+
+    const miscControls = [
         createNumericControl({
             key: 'uESMK',
             label: 'ESM Coefficient',
@@ -252,24 +307,6 @@ function getShadowUIControls() {
             defaultValue: DEFAULT_BLEED_REDUCTION,
             eps: BLEED_REDUCTION_EPS,
             formatValue: (value) => value.toFixed(2),
-        }),
-        createDiscreteControl({
-            key: 'varianceBlurWidth',
-            label: 'Blur Width',
-            values: VARIANCE_BLUR_WIDTH_OPTIONS,
-            getValue: () => uVarianceBlurWidth.value,
-            setValue: setVarianceBlurWidth,
-            defaultValue: DEFAULT_VARIANCE_BLUR_WIDTH,
-            formatValue: (value) => value.toString(),
-        }),
-        createDiscreteControl({
-            key: 'varianceBlurSigma',
-            label: 'Blur Sigma',
-            values: VARIANCE_BLUR_SIGMA_OPTIONS,
-            getValue: () => uVarianceBlurSigma.value,
-            setValue: setVarianceBlurSigma,
-            defaultValue: DEFAULT_VARIANCE_BLUR_SIGMA,
-            formatValue: (value) => value.toFixed(1),
         }),
     ];
 
@@ -328,8 +365,21 @@ function getShadowUIControls() {
     return {
         sections: [
             {
-                title: 'Shadow Settings',
-                controls: shadowControls,
+                title: 'General',
+                controls: generalControls,
+            },
+            {
+                title: 'Sampling',
+                controls: samplingControls,
+            },
+            {
+                title: 'Filtering',
+                controls: filteringControls,
+                toggles: filteringToggles,
+            },
+            {
+                title: 'Misc',
+                controls: miscControls,
                 toggles,
             },
             {

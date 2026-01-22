@@ -412,4 +412,49 @@ function createToggleControl({
     };
 }
 
+function createPerformanceTracker() {
+    const tracker = document.createElement('div');
+    Object.assign(tracker.style, {
+        position: 'absolute',
+        top: '12px',
+        right: '12px',
+        padding: '6px 10px',
+        fontFamily: 'monospace',
+        fontSize: '12px',
+        color: '#f0f8ff',
+        backgroundColor: 'rgba(0, 0, 0, 0.55)',
+        border: '1px solid rgba(255, 255, 255, 0.2)',
+        borderRadius: '4px',
+        letterSpacing: '0.03em',
+        pointerEvents: 'none',
+        zIndex: 20,
+    });
+    tracker.textContent = 'FPS: -- | Frame: -- ms';
+    document.body.appendChild(tracker);
 
+    let frameCount = 0;
+    let frameTimeAccum = 0;
+    let lastUpdate = performance.now();
+
+    function updateDisplay(avgFrameTime) {
+        const now = performance.now();
+        const elapsed = now - lastUpdate;
+        if (elapsed < 250) {
+            return;
+        }
+        const fps = frameCount > 0 ? (frameCount * 1000) / elapsed : 0;
+        tracker.textContent = `FPS: ${fps.toFixed(1)} | Frame: ${avgFrameTime.toFixed(2)} ms`;
+        lastUpdate = now;
+        frameCount = 0;
+        frameTimeAccum = 0;
+    }
+
+    return {
+        trackFrame(frameDurationMs) {
+            frameCount += 1;
+            frameTimeAccum += frameDurationMs;
+            const avgFrameTime = frameCount > 0 ? frameTimeAccum / frameCount : 0;
+            updateDisplay(avgFrameTime);
+        },
+    };
+}

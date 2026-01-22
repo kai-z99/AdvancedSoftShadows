@@ -10,14 +10,17 @@ function createShadowRenderTarget(res) {
   // prefer float if supported, otherwise half float
   const type = supportsFloatRT ? THREE.FloatType : THREE.HalfFloatType;
 
-  const filter = (type === THREE.FloatType && !supportsFloatLinear)
+  const baseFilter = (type === THREE.FloatType && !supportsFloatLinear)
     ? THREE.NearestFilter
     : THREE.LinearFilter;
 
+  const useMipmaps = shouldUseShadowMipmaps();
+  const minFilter = useMipmaps ? THREE.LinearMipmapLinearFilter : baseFilter;
+
   return new THREE.WebGLCubeRenderTarget(res, {
-    generateMipmaps: false,
-    minFilter: filter,
-    magFilter: filter,
+    generateMipmaps: useMipmaps,
+    minFilter,
+    magFilter: baseFilter,
     format: THREE.RGBAFormat,
     type,
     depthBuffer: true,
@@ -134,6 +137,10 @@ function renderShadowMap() {
 
     if (uShadowType.value === 3 || uShadowType.value === 4) {
         blurShadowMap();
+    }
+
+    if (shouldUseShadowMipmaps() && typeof renderer.updateRenderTargetMipmap === 'function') {
+        renderer.updateRenderTargetMipmap(shadowCubeRT);
     }
 }
 

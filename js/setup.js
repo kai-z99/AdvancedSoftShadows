@@ -21,6 +21,7 @@ let shadowCubeRT = null;
 let shadowCubeBlurRT = null;
 let currentShadowRes = BASE_SHADOW_RES; //res of rt
 let showShadowDebug = false;
+let enableShadowMipmaps = false;
 
 let ui = null;
 let keyboard = null;
@@ -49,6 +50,10 @@ let sphere = null;
 let sphereLight = null;
 let lightBrightness = DEFAULT_LIGHT_BRIGHTNESS; //dont need this as a uniform since its not used in our shaders
 let lightAttenuationRadius = DEFAULT_LIGHT_ATTENUATION; //same here
+
+function shouldUseShadowMipmaps() {
+        return enableShadowMipmaps && (uShadowType.value === 3 || uShadowType.value === 4);
+}
 
 
 /**
