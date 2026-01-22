@@ -129,21 +129,30 @@ function setBleedReduction(value)
     updateShadowUI();
 }
 
-function setVarianceBlurWidth(value)
+function setBlurWidth(value)
 {
-    if (VARIANCE_BLUR_WIDTH_OPTIONS.indexOf(value) === -1) return;
-    if (uVarianceBlurWidth.value === value) return;
-    uVarianceBlurWidth.value = value;
-    console.log("Variance blur width: " + value);
+    if (BLUR_WIDTH_OPTIONS.indexOf(value) === -1) return;
+    if (uBlurWidth.value === value) return;
+    uBlurWidth.value = value;
+    console.log("Blur width: " + value);
     updateShadowUI();
 }
 
-function setVarianceBlurSigma(value)
+function setBlurSigma(value)
 {
-    if (VARIANCE_BLUR_SIGMA_OPTIONS.indexOf(value) === -1) return;
-    if (Math.abs(value - uVarianceBlurSigma.value) < VARIANCE_BLUR_SIGMA_EPS) return;
-    uVarianceBlurSigma.value = value;
-    console.log("Variance blur sigma: " + value.toFixed(1));
+    if (BLUR_SIGMA_OPTIONS.indexOf(value) === -1) return;
+    uBlurSigma.value = value;
+    console.log("Blur sigma: " + value.toFixed(1));
+    updateShadowUI();
+}
+
+
+function setBlurMultiplier(value)
+{
+    const clamped = Math.min(Math.max(value, BLUR_MULTIPLIER_MIN), BLUR_MULTIPLIER_MAX);
+    if (Math.abs(clamped - uBlurMultiplier.value) < BLUR_MULTIPLIER_EPS) return;
+    uBlurMultiplier.value = clamped;
+    console.log("Blur Multipler: " + uBlurMultiplier.value.toFixed(2));
     updateShadowUI();
 }
 
@@ -190,7 +199,7 @@ function getShadowUIControls() {
             step: SHADOW_NEAR_STEP,
             min: SHADOW_NEAR_MIN,
             max: getMaxShadowNear,
-            defaultValue: DEFAULT_SHADOW_NEAR,
+            defaultValue: SHADOW_NEAR_DEFAULT,
             eps: BIAS_EPS,
             formatValue: (value) => value.toFixed(2),
         }),
@@ -202,7 +211,7 @@ function getShadowUIControls() {
             step: SHADOW_FAR_STEP,
             min: getMinShadowFar,
             max: SHADOW_FAR_MAX,
-            defaultValue: DEFAULT_SHADOW_FAR,
+            defaultValue: SHADOW_FAR_DEFAULT,
             eps: BIAS_EPS,
             formatValue: (value) => value.toFixed(1),
         }),
@@ -214,7 +223,7 @@ function getShadowUIControls() {
             step: SHADOW_BIAS_STEP,
             min: MIN_SHADOW_BIAS,
             max: MAX_SHADOW_BIAS,
-            defaultValue: DEFAULT_SHADOW_BIAS,
+            defaultValue: SHADOW_BIAS_DEFAULT,
             eps: BIAS_EPS,
             formatValue: (value) => value.toFixed(4),
         }),
@@ -229,7 +238,7 @@ function getShadowUIControls() {
             step: PCF_RADIUS_STEP,
             min: PCF_RADIUS_MIN,
             max: PCF_RADIUS_MAX,
-            defaultValue: DEFAULT_PCF_RADIUS,
+            defaultValue: PCF_RADIUS_DEFAULT,
             eps: PCF_EPS,
             formatValue: (value) => value.toFixed(2),
         }),
@@ -239,7 +248,7 @@ function getShadowUIControls() {
             values: POISSON_SAMPLE_OPTIONS,
             getValue: () => uPoissonSamples.value,
             setValue: setPoissonSamples,
-            defaultValue: DEFAULT_POISSON_SAMPLES,
+            defaultValue: POISSON_SAMPLES_DEFAULT,
             formatValue: (value) => value.toString(),
         }),
         createDiscreteControl({
@@ -248,28 +257,40 @@ function getShadowUIControls() {
             values: PCSS_BLOCKER_SAMPLE_OPTIONS,
             getValue: () => uBlockerSamples.value,
             setValue: setPCSSBlockerSamples,
-            defaultValue: DEFAULT_PCSS_BLOCKER_SAMPLES,
+            defaultValue: PCSS_BLOCKER_SAMPLES_DEFAULT,
             formatValue: (value) => value.toString(),
         }),
     ];
 
     const filteringControls = [
         createDiscreteControl({
-            key: 'varianceBlurWidth',
+            key: 'blurWidth',
             label: 'Blur Width',
-            values: VARIANCE_BLUR_WIDTH_OPTIONS,
-            getValue: () => uVarianceBlurWidth.value,
-            setValue: setVarianceBlurWidth,
-            defaultValue: DEFAULT_VARIANCE_BLUR_WIDTH,
+            values: BLUR_WIDTH_OPTIONS,
+            getValue: () => uBlurWidth.value,
+            setValue: setBlurWidth,
+            defaultValue: BLUR_WIDTH_DEFAULT,
             formatValue: (value) => value.toString(),
         }),
         createDiscreteControl({
-            key: 'varianceBlurSigma',
+            key: 'blurSigma',
             label: 'Blur Sigma',
-            values: VARIANCE_BLUR_SIGMA_OPTIONS,
-            getValue: () => uVarianceBlurSigma.value,
-            setValue: setVarianceBlurSigma,
-            defaultValue: DEFAULT_VARIANCE_BLUR_SIGMA,
+            values: BLUR_SIGMA_OPTIONS,
+            getValue: () => uBlurSigma.value,
+            setValue: setBlurSigma,
+            defaultValue: BLUR_SIGMA_DEFAULT,
+            formatValue: (value) => value.toFixed(1),
+        }),
+        createNumericControl({
+            key: 'blurMultipler',
+            label: 'Blur Multipler',
+            getValue: () => uBlurMultiplier.value,
+            setValue: setBlurMultiplier,
+            step: BLUR_MULTIPLIER_STEP,
+            min: BLUR_MULTIPLIER_MIN,
+            max: BLUR_MULTIPLIER_MAX,
+            defaultValue: BLUR_MULTIPLIER_DEFAULT,
+            eps: BLUR_MULTIPLIER_EPS,
             formatValue: (value) => value.toFixed(1),
         }),
     ];
@@ -292,7 +313,7 @@ function getShadowUIControls() {
             step: ESM_K_STEP,
             min: ESM_K_MIN,
             max: ESM_K_MAX,
-            defaultValue: DEFAULT_ESM_K,
+            defaultValue: ESM_K_DEFAULT,
             eps: ESM_K_EPS,
             formatValue: (value) => value.toFixed(1),
         }),
@@ -304,7 +325,7 @@ function getShadowUIControls() {
             step: BLEED_REDUCTION_STEP,
             min: BLEED_REDUCTION_MIN,
             max: BLEED_REDUCTION_MAX,
-            defaultValue: DEFAULT_BLEED_REDUCTION,
+            defaultValue: BLEED_REDUCTION_DEFAULT,
             eps: BLEED_REDUCTION_EPS,
             formatValue: (value) => value.toFixed(2),
         }),
@@ -319,7 +340,7 @@ function getShadowUIControls() {
             step: LIGHT_BRIGHTNESS_STEP,
             min: LIGHT_BRIGHTNESS_MIN,
             max: LIGHT_BRIGHTNESS_MAX,
-            defaultValue: DEFAULT_LIGHT_BRIGHTNESS,
+            defaultValue: LIGHT_BRIGHTNESS_DEFAULT,
             eps: LIGHT_BRIGHTNESS_EPS,
             formatValue: (value) => value.toFixed(2),
         }),
@@ -331,7 +352,7 @@ function getShadowUIControls() {
             step: LIGHT_ATTENUATION_STEP,
             min: LIGHT_ATTENUATION_MIN,
             max: LIGHT_ATTENUATION_MAX,
-            defaultValue: DEFAULT_LIGHT_ATTENUATION,
+            defaultValue: LIGHT_ATTENUATION_DEFAULT,
             eps: LIGHT_ATTENUATION_EPS,
             formatValue: (value) => value.toFixed(1),
             valueMinWidth: '90px',
@@ -344,13 +365,13 @@ function getShadowUIControls() {
             step: LIGHT_RADIUS_STEP,
             min: LIGHT_RADIUS_MIN,
             max: LIGHT_RADIUS_MAX,
-            defaultValue: DEFAULT_LIGHT_RADIUS,
+            defaultValue: LIGHT_RADIUS_DEFAULT,
             eps: LIGHT_RADIUS_EPS,
             formatValue: (value) => value.toFixed(2),
         }),
     ];
 
-    const toggles = [
+    const miscToggles = [
         createToggleControl({
             key: 'shadowDebug',
             label: 'Show Shadow Map',
@@ -380,7 +401,7 @@ function getShadowUIControls() {
             {
                 title: 'Misc',
                 controls: miscControls,
-                toggles,
+                toggles: miscToggles,
             },
             {
                 title: 'Light Settings',

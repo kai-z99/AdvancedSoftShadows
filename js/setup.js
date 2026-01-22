@@ -2,19 +2,20 @@
 
 // Shared uniforms and render state
 const uLightPosition   = { type: 'v3', value: new THREE.Vector3(0.0, 70.0, -25.0) };
-const uLightRadius     = { value: DEFAULT_LIGHT_RADIUS };
-const uPCFRadius     = { value: DEFAULT_PCF_RADIUS };
-const uPoissonSamples = { value: DEFAULT_POISSON_SAMPLES };
-const uBlockerSamples = { value: DEFAULT_PCSS_BLOCKER_SAMPLES };
+const uLightRadius     = { value: LIGHT_RADIUS_DEFAULT };
+const uPCFRadius     = { value: PCF_RADIUS_DEFAULT };
+const uPoissonSamples = { value: POISSON_SAMPLES_DEFAULT };
+const uBlockerSamples = { value: PCSS_BLOCKER_SAMPLES_DEFAULT };
 const uShadowType    = { value: 1 };
-const uShadowNear    = { value: DEFAULT_SHADOW_NEAR };
-const uShadowFar     = { value: DEFAULT_SHADOW_FAR };
-const uShadowBias    = { value: DEFAULT_SHADOW_BIAS };
+const uShadowNear    = { value: SHADOW_NEAR_DEFAULT };
+const uShadowFar     = { value: SHADOW_FAR_DEFAULT };
+const uShadowBias    = { value: SHADOW_BIAS_DEFAULT };
 const uShadowCube = { value: null }; // set in recreateShadowPassRenderTargets()
-const uESMK = { value: DEFAULT_ESM_K };
-const uBleedReduction = { value: DEFAULT_BLEED_REDUCTION };
-const uVarianceBlurWidth = { value: DEFAULT_VARIANCE_BLUR_WIDTH };
-const uVarianceBlurSigma = { value: DEFAULT_VARIANCE_BLUR_SIGMA };
+const uESMK = { value: ESM_K_DEFAULT };
+const uBleedReduction = { value: BLEED_REDUCTION_DEFAULT };
+const uBlurWidth = { value: BLUR_WIDTH_DEFAULT };
+const uBlurSigma = { value: BLUR_SIGMA_DEFAULT };
+const uBlurMultiplier = { value: BLUR_MULTIPLIER_DEFAULT };
 
 //shadow rts
 let shadowCubeRT = null;
@@ -48,8 +49,8 @@ let shadowDebugPlane = null;
 let sphereGeometry = null;
 let sphere = null;
 let sphereLight = null;
-let lightBrightness = DEFAULT_LIGHT_BRIGHTNESS; //dont need this as a uniform since its not used in our shaders
-let lightAttenuationRadius = DEFAULT_LIGHT_ATTENUATION; //same here
+let lightBrightness = LIGHT_BRIGHTNESS_DEFAULT; //dont need this as a uniform since its not used in our shaders
+let lightAttenuationRadius = LIGHT_ATTENUATION_DEFAULT; //same here
 
 function shouldUseShadowMipmaps() {
         return enableShadowMipmaps && (uShadowType.value === 3 || uShadowType.value === 4);
@@ -222,8 +223,9 @@ function initMaterials() {
                         faceRight: { value: new THREE.Vector3(1, 0, 0) },
                         faceUp: { value: new THREE.Vector3(0, 1, 0) },
                         faceForward: { value: new THREE.Vector3(0, 0, 1) },
-                        blurWidth: uVarianceBlurWidth,
-                        blurSigma: uVarianceBlurSigma,
+                        blurWidth: uBlurWidth,
+                        blurSigma: uBlurSigma,
+                        blurMultiplier: uBlurMultiplier,
                 },
                 depthTest: false,
                 depthWrite: false,

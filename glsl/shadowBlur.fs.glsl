@@ -8,6 +8,7 @@ uniform vec3 faceUp;
 uniform vec3 faceForward;
 uniform int blurWidth;
 uniform float blurSigma;
+uniform float blurMultiplier;
 
 varying vec2 vClipUv;
 
@@ -65,7 +66,7 @@ void main()
     for (int i = 1; i < 3; ++i) 
     {
         if (i > radius) break;
-        vec2 offset = direction * texelStep * float(i);
+        vec2 offset = direction * texelStep * float(i) * blurMultiplier;
         vec4 samplePos = textureCube(sourceCube, dirFromUv(vClipUv + offset));
         vec4 sampleNeg = textureCube(sourceCube, dirFromUv(vClipUv - offset));
         result += (samplePos + sampleNeg) * weights[i];

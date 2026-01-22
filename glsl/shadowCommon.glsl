@@ -281,7 +281,7 @@ float shadowFactorESM(
     float current01 = clamp((D - shadowNear) / (shadowFar - shadowNear) - shadowBias, 0.0, 1.0);
     float closest01EXP = textureCube(shadowCube, dir).b; //exp(closest * k)
     float shadow = clamp(exp(-K * current01) * closest01EXP, 0.0, 1.0);
-    return ReduceLightBleeding(shadow, 0.0);
+    return shadow;
 }
 
 float getAvgBlockerDepth(
