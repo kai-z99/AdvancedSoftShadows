@@ -2,6 +2,7 @@
 
 let shadowCams = [];
 let tempBlurRight = new THREE.Vector3();
+const shadowClearColor = new THREE.Color(1, 1, 1);
 
 function createShadowRenderTarget(res) {
   const supportsFloatRT = renderer.extensions.has('EXT_color_buffer_float');
@@ -34,6 +35,8 @@ function recreateShadowPassRenderTargets() {
 
     shadowCubeRT = createShadowRenderTarget(currentShadowRes);
     shadowCubeBlurRT = createShadowRenderTarget(currentShadowRes);
+
+
     uShadowCube.value = shadowCubeRT.texture;
 
     if (blurMaterial) {
@@ -111,6 +114,10 @@ function renderShadowMap() {
     const lp = uLightPosition.value;
     pointShadowMaterial.uniforms.lightPos.value = lp;
 
+    const oldClearColor = renderer.getClearColor(new THREE.Color());
+    const oldClearAlpha = renderer.getClearAlpha();
+    renderer.setClearColor(shadowClearColor, 1);
+
     const oldSphereVisible = sphere.visible;
     sphere.visible = false;
 
@@ -125,11 +132,12 @@ function renderShadowMap() {
         cam.lookAt(lp.clone().add(faceDirs[face]));
         cam.updateMatrixWorld(true);
         cam.updateProjectionMatrix();
-
         renderer.setRenderTarget(shadowCubeRT, face);
         renderer.clear(true, true, true);
         renderer.render(scene, cam);
     }
+
+    renderer.setClearColor(oldClearColor, oldClearAlpha);
 
     renderer.setRenderTarget(null);
     scene.overrideMaterial = oldOverride;
