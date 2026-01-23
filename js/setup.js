@@ -35,6 +35,52 @@ let pointShadowMaterial = null;
 let blurMaterial = null;
 let shadowDebugMaterial = null;
 
+const FLOOR_MATERIAL_CONFIGS = [
+        {
+            key: 'flakingLimestone',
+            label: 'Limestone',
+            repeat: 3,
+            maps: {
+                    map: 'images/flaking-limestone1-bl/flaking-limestone1-bl/flaking-limestone1-albedo.png',
+                    normalMap: 'images/flaking-limestone1-bl/flaking-limestone1-bl/flaking-limestone1-normal.png',
+                    roughnessMap: 'images/flaking-limestone1-bl/flaking-limestone1-bl/flaking-limestone1-roughness.png',
+                    aoMap: 'images/flaking-limestone1-bl/flaking-limestone1-bl/flaking-limestone1-ao.png',
+                    metalnessMap: 'images/flaking-limestone1-bl/flaking-limestone1-bl/flaking-limestone1-metalness.png',
+            },
+            metalness: 1.0,
+            roughness: 1.0,
+        },
+        {
+            key: 'cobblestoneFloor',
+            label: 'Cobblestone',
+            repeat: 3,
+            maps: {
+                    map: 'images/cobblestone_floor/cobblestone_floor_diff.jpg',
+                    normalMap: 'images/cobblestone_floor/cobblestone_floor_nor.jpg',
+                    roughnessMap: 'images/cobblestone_floor/cobblestone_floor_rough.jpg',
+                    aoMap: 'images/cobblestone_floor/cobblestone_floor_ao.jpg',
+            },
+            metalness: 0.05,
+            roughness: 0.95,
+        },
+        {
+            key: 'whiteTile',
+            label: 'White Tile',
+            repeat: 4,
+            maps: {
+                    map: 'images/base-white-tile-unity/base-white-tile_albedo.png',
+                    normalMap: 'images/base-white-tile-unity/base-white-tile_normal-ogl.png',
+                    aoMap: 'images/base-white-tile-unity/base-white-tile_ao.png',
+            },
+            metalness: 0.1,
+            roughness: 0.4,
+        },
+];
+
+let floorMaterialByKey = {};  
+let floorMaterialKeys = [];      
+let currentFloorMaterialKey = "";
+
 //2 tap blur scene for variance shadow map
 let blurScene = null;
 let blurCamera = null;
@@ -44,6 +90,8 @@ let blurPlane = null;
 let shadowDebugScene = null;
 let shadowDebugCamera = null;
 let shadowDebugPlane = null;
+
+let floorMesh = null;
 
 //light sphere
 let sphereGeometry = null;
@@ -89,9 +137,9 @@ function setup() {
 
     // Update projection matrix based on the windows size.
     function resize() {
-            renderer.setSize(window.innerWidth, window.innerHeight);
-            camera.aspect = window.innerWidth / window.innerHeight;
-            camera.updateProjectionMatrix();
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        camera.aspect = window.innerWidth / window.innerHeight;
+        camera.updateProjectionMatrix();
     }
     window.addEventListener('resize', resize);
     resize();
@@ -101,9 +149,9 @@ function setup() {
     scene.add(light);
 
     return {
-            renderer,
-            scene,
-            camera,
+        renderer,
+        scene,
+        camera,
     };
 }
 
@@ -114,90 +162,59 @@ function setup() {
  * The variable passed into the place callback is a THREE.Object3D.
  */
 function loadAndPlaceOBJ(file, material, place) {
-        const manager = new THREE.LoadingManager();
-        manager.onProgress = function (item, loaded, total) {
-                console.log(item, loaded, total);
-        };
+    const manager = new THREE.LoadingManager();
+    manager.onProgress = function (item, loaded, total) {
+            console.log(item, loaded, total);
+    };
 
-        const onProgress = function (xhr) {
-                if (xhr.lengthComputable) {
-                        const percentComplete = xhr.loaded / xhr.total * 100.0;
-                        console.log(Math.round(percentComplete, 2) + '% downloaded');
-                }
-        };
+    const onProgress = function (xhr) {
+            if (xhr.lengthComputable) {
+                    const percentComplete = xhr.loaded / xhr.total * 100.0;
+                    console.log(Math.round(percentComplete, 2) + '% downloaded');
+            }
+    };
 
-        const loader = new THREE.OBJLoader(manager);
-        loader.load(file, function (object) {
-                object.traverse(function (child) {
-                        if (child instanceof THREE.Mesh) {
-                                child.material = material;
-                        }
-                });
-                place(object);
-        }, onProgress);
+    const loader = new THREE.OBJLoader(manager);
+    loader.load(file, function (object) {
+            object.traverse(function (child) {
+                    if (child instanceof THREE.Mesh) {
+                            child.material = material;
+                    }
+            });
+            place(object);
+    }, onProgress);
 }
 
 function initializeSceneContent(scene) {
-        initMaterials();
-        initScenes();
-        loadSceneObjects(scene);
-        loadShadowShaders();
+    initMaterials();
+    initScenes();
+    loadSceneObjects(scene);
+    loadShadowShaders();
 }
 
 function initializeShadowUI() {
-        if (ui) return ui;
-        ui = createDebugPanel(getShadowUIControls());
-        if (typeof window.updateShadowUI === 'function') {
-                window.updateShadowUI();
-        } else if (ui && typeof ui.update === 'function') {
-                ui.update();
-        }
-        return ui;
+    if (ui) return ui;
+    ui = createDebugPanel(getShadowUIControls());
+    if (typeof window.updateShadowUI === 'function') {
+            window.updateShadowUI();
+    } else if (ui && typeof ui.update === 'function') {
+            ui.update();
+    }
+    return ui;
 }
 
 function initMaterials() {
         if (armadilloMaterial) return;
 
         armadilloMaterial = new THREE.MeshStandardMaterial({
-                color: 0xb5b5b5,
-                metalness: 0.15,
-                roughness: 0.65,
+            color: 0xb5b5b5,
+            metalness: 0.15,
+            roughness: 0.65,
         });
 
-        /*
-        floorMaterial = new THREE.MeshStandardMaterial({
-                color: 0x888888,
-                metalness: 0.0,
-                roughness: 0.9,
-        });
-        */
 
-        const textureLoader = new THREE.TextureLoader();
-        const limestoneTextureDir = 'images/flaking-limestone1-bl/flaking-limestone1-bl';
-        const floorColorMap = textureLoader.load(`${limestoneTextureDir}/flaking-limestone1-albedo.png`);
-        const floorNormalMap = textureLoader.load(`${limestoneTextureDir}/flaking-limestone1-normal.png`);
-        const floorRoughnessMap = textureLoader.load(`${limestoneTextureDir}/flaking-limestone1-roughness.png`);
-        const floorAoMap = textureLoader.load(`${limestoneTextureDir}/flaking-limestone1-ao.png`);
-        const floorMetalnessMap = textureLoader.load(`${limestoneTextureDir}/flaking-limestone1-metalness.png`);
-
-        const floorRepeat = 3;
-        [floorColorMap, floorNormalMap, floorRoughnessMap, floorAoMap, floorMetalnessMap].forEach((tex) => {
-                tex.wrapS = THREE.RepeatWrapping;
-                tex.wrapT = THREE.RepeatWrapping;
-                tex.repeat.set(floorRepeat, floorRepeat);
-        });
-
-        floorMaterial = new THREE.MeshStandardMaterial({
-                map: floorColorMap,
-                normalMap: floorNormalMap,
-                roughnessMap: floorRoughnessMap,
-                aoMap: floorAoMap,
-                metalnessMap: floorMetalnessMap,
-                metalness: 1.0,
-                roughness: 1.0,
-        });
-
-        
+        initFloorMaterials();
+        setFloorMaterialByKey(currentFloorMaterialKey);
 
         sphereMaterial = new THREE.ShaderMaterial({
                 uniforms: {
@@ -282,10 +299,10 @@ function loadSceneObjects(scene) {
 
     const floorGeometry = new THREE.PlaneBufferGeometry(250.0, 250.0);
     floorGeometry.setAttribute('uv2', new THREE.BufferAttribute(floorGeometry.attributes.uv.array, 2));
-    const floor = new THREE.Mesh(floorGeometry, floorMaterial);
-    floor.rotation.x = -Math.PI / 2.0;
-    floor.position.y = -0.3;
-    scene.add(floor);
+    floorMesh = new THREE.Mesh(floorGeometry, floorMaterial);
+    floorMesh.rotation.x = -Math.PI / 2.0;
+    floorMesh.position.y = -0.3;
+    scene.add(floorMesh);
 
 
     loadAndPlaceOBJ('obj/trex.obj', armadilloMaterial, function (armadillo) {
@@ -374,7 +391,9 @@ function loadShadowShaders() {
             shadowDebugPlane.material = shadowDebugMaterial;
 
             const shadowCommon = shaders['glsl/shadowCommon.glsl'];
-            injectPointShadowsIntoStandardMaterial(floorMaterial, shadowCommon);
+            Object.values(floorMaterialByKey).forEach((entry) => {
+                injectPointShadowsIntoStandardMaterial(entry.material, shadowCommon);
+            });
             injectPointShadowsIntoStandardMaterial(armadilloMaterial, shadowCommon);
     });
 }
@@ -451,3 +470,5 @@ function initializeKeyboard() {
         keyboard = new THREEx.KeyboardState();
         return keyboard;
 }
+
+

@@ -56,8 +56,7 @@ function setPCFRadius(value) {
 }
 
 function setShadowNear(value) {
-    const maxNear = getMaxShadowNear();
-    const clamped = Math.min(Math.max(value, SHADOW_NEAR_MIN), maxNear);
+    const clamped = Math.min(Math.max(value, SHADOW_NEAR_MIN), SHADOW_NEAR_MAX);
     if (Math.abs(clamped - uShadowNear.value) < BIAS_EPS) return;
     uShadowNear.value = clamped;
     console.log("Shadow near plane: " + uShadowNear.value.toFixed(2));
@@ -66,8 +65,7 @@ function setShadowNear(value) {
 }
 
 function setShadowFar(value) {
-    const minFar = getMinShadowFar();
-    const clamped = Math.min(Math.max(value, minFar), SHADOW_FAR_MAX);
+    const clamped = Math.min(Math.max(value, SHADOW_FAR_MIN), SHADOW_FAR_MAX);
     if (Math.abs(clamped - uShadowFar.value) < BIAS_EPS) return;
     uShadowFar.value = clamped;
     console.log("Shadow far plane: " + uShadowFar.value.toFixed(1));
@@ -169,6 +167,15 @@ function setShadowMipmapsEnabled(enabled)
     updateShadowUI();
 }
 
+function setFloorMaterial(key) {
+    if (key === getCurrentFloorMaterialKey()) return;
+
+    setFloorMaterialByKey(key);
+
+    console.log("Material changed to: " + key);
+    updateShadowUI();
+}
+
 function getShadowUIControls() {
     const modeValues = Array.from({ length: shadowModeNames.length - 1 }, (_, idx) => idx + 1);
 
@@ -198,7 +205,7 @@ function getShadowUIControls() {
             setValue: setShadowNear,
             step: SHADOW_NEAR_STEP,
             min: SHADOW_NEAR_MIN,
-            max: getMaxShadowNear,
+            max: SHADOW_NEAR_MAX,
             defaultValue: SHADOW_NEAR_DEFAULT,
             eps: BIAS_EPS,
             formatValue: (value) => value.toFixed(2),
@@ -209,7 +216,7 @@ function getShadowUIControls() {
             getValue: () => uShadowFar.value,
             setValue: setShadowFar,
             step: SHADOW_FAR_STEP,
-            min: getMinShadowFar,
+            min: SHADOW_FAR_MIN,
             max: SHADOW_FAR_MAX,
             defaultValue: SHADOW_FAR_DEFAULT,
             eps: BIAS_EPS,
@@ -371,6 +378,20 @@ function getShadowUIControls() {
         }),
     ];
 
+    const materialKeys = getAvailableFloorMaterialKeys(); // not empty ever
+
+    const modelMaterialControls = [
+        createDiscreteControl({
+            key: 'modelMaterial',
+            label: 'Material',
+            values: materialKeys,
+            getValue: () => getCurrentFloorMaterialKey(),
+            setValue: setFloorMaterial,
+            defaultValue: materialKeys[0],
+            formatValue: (value) => getFloorMaterialLabel(value),
+        }),
+    ];
+
     const miscToggles = [
         createToggleControl({
             key: 'shadowDebug',
@@ -383,38 +404,36 @@ function getShadowUIControls() {
         }),
     ];
 
-    return {
-        sections: [
-            {
-                title: 'General',
-                controls: generalControls,
-            },
-            {
-                title: 'Sampling',
-                controls: samplingControls,
-            },
-            {
-                title: 'Filtering',
-                controls: filteringControls,
-                toggles: filteringToggles,
-            },
-            {
-                title: 'Misc',
-                controls: miscControls,
-                toggles: miscToggles,
-            },
-            {
-                title: 'Light Settings',
-                controls: lightControls,
-            },
-        ],
-    };
-}
+    const sections = [
+        {
+            title: 'General',
+            controls: generalControls,
+        },
+        {
+            title: 'Sampling',
+            controls: samplingControls,
+        },
+        {
+            title: 'Filtering',
+            controls: filteringControls,
+            toggles: filteringToggles,
+        },
+        {
+            title: 'Misc',
+            controls: miscControls,
+            toggles: miscToggles,
+        },
+        {
+            title: 'Light Settings',
+            controls: lightControls,
+        },
+        { 
+            title: 'Model / Material', 
+            controls: modelMaterialControls 
+        },
+    ];
 
-function getMaxShadowNear() {
-    return Math.max(SHADOW_NEAR_MIN, Math.min(SHADOW_NEAR_MAX, uShadowFar.value - SHADOW_MIN_RANGE));
-}
 
-function getMinShadowFar() {
-    return Math.min(SHADOW_FAR_MAX, Math.max(SHADOW_FAR_MIN, uShadowNear.value + SHADOW_MIN_RANGE));
+
+    return { sections };
 }
