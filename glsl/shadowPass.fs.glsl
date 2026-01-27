@@ -27,7 +27,7 @@ void main()
             gl_FragColor = vec4(depth01, depth01 * depth01, 0.0, 1.0);
             break;
         case 4: //esm
-            gl_FragColor = vec4(exp(ESMK * depth01), 0.0, 0.0, 1.0);
+            gl_FragColor = vec4(depth01, exp(ESMK * depth01), 0.0, 1.0);
             break;
         case 6: //msm
             gl_FragColor = vec4(depth01, depth01 *depth01, depth01*depth01*depth01, depth01*depth01*depth01*depth01);
