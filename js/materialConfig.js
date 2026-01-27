@@ -11,13 +11,30 @@ function initFloorMaterials() {
     floorMaterial = floorMaterialByKey[currentFloorMaterialKey].material;
 }
 
+function makeFloorEntry(loader, cfg) {
+    const r = cfg.repeat ?? 1;
+    const m = cfg.maps;
+
+    const mat = new THREE.MeshStandardMaterial({
+        map:          m.map          ? loadTex(loader, m.map,          r, true)  : null,
+        normalMap:    m.normalMap    ? loadTex(loader, m.normalMap,    r, false) : null,
+        roughnessMap: m.roughnessMap ? loadTex(loader, m.roughnessMap, r, false) : null,
+        aoMap:        m.aoMap        ? loadTex(loader, m.aoMap,        r, false) : null,
+        metalnessMap: m.metalnessMap ? loadTex(loader, m.metalnessMap, r, false) : null,
+
+        metalness: cfg.metalness ?? 0.1,
+        roughness: cfg.roughness ?? 0.9,
+    });
+
+    return { label: cfg.label, material: mat };
+}
+
 function setFloorMaterialByKey(key) {
     if (key === currentFloorMaterialKey) return;
     const entry = floorMaterialByKey[key];
     if (!entry) return;
 
     currentFloorMaterialKey = key;
-    floorMaterial = entry.material;
 
     if (floorMesh) floorMesh.material = entry.material;
 }
@@ -37,23 +54,7 @@ function loadTex(loader, path, repeat, isColor = false) {
     return t;
 }
 
-function makeFloorEntry(loader, cfg) {
-    const r = cfg.repeat ?? 1;
-    const m = cfg.maps;
 
-    const mat = new THREE.MeshStandardMaterial({
-        map:          m.map          ? loadTex(loader, m.map,          r, true)  : null,
-        normalMap:    m.normalMap    ? loadTex(loader, m.normalMap,    r, false) : null,
-        roughnessMap: m.roughnessMap ? loadTex(loader, m.roughnessMap, r, false) : null,
-        aoMap:        m.aoMap        ? loadTex(loader, m.aoMap,        r, false) : null,
-        metalnessMap: m.metalnessMap ? loadTex(loader, m.metalnessMap, r, false) : null,
-
-        metalness: cfg.metalness ?? 0.1,
-        roughness: cfg.roughness ?? 0.9,
-    });
-
-    return { label: cfg.label, material: mat };
-}
 
 function getCurrentFloorMaterialKey() {
     return currentFloorMaterialKey;

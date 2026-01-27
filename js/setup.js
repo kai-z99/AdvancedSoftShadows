@@ -29,7 +29,6 @@ let keyboard = null;
 
 //scene materials
 let armadilloMaterial = null;
-let floorMaterial = null;
 let sphereMaterial = null;
 let pointShadowMaterial = null;
 let blurMaterial = null;
@@ -229,6 +228,7 @@ function initMaterials() {
                         nearPlane: uShadowNear,
                         farPlane: uShadowFar,
                         ESMK: uESMK,
+                        shadowType: uShadowType,
                 }
         });
 

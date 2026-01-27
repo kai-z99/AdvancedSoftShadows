@@ -279,7 +279,7 @@ float shadowFactorESM(
     vec3 dir = L / max(D, 1e-5); //normalized L
 
     float current01 = clamp((D - shadowNear) / (shadowFar - shadowNear) - shadowBias, 0.0, 1.0);
-    float closest01EXP = textureCube(shadowCube, dir).b; //exp(closest * k)
+    float closest01EXP = textureCube(shadowCube, dir).r; //exp(closest * k)
     float shadow = clamp(exp(-K * current01) * closest01EXP, 0.0, 1.0);
     return shadow;
 }

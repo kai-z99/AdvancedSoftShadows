@@ -4,7 +4,29 @@ let shadowCams = [];
 let tempBlurRight = new THREE.Vector3();
 const shadowClearColor = new THREE.Color(1, 1, 1);
 
-function createShadowRenderTarget(res) {
+function pickShadowFormat(shadowType) {
+  const isWebGL2 = renderer.capabilities.isWebGL2;
+
+  if (!isWebGL2) {
+    return THREE.RGBAFormat;
+  }
+
+  switch (shadowType) {
+    case 1: // HARD
+    case 2: // PCF
+    case 5: // PCSS
+    case 4: // ESM
+      return THREE.RedFormat;  
+    case 3: // VSM
+      return THREE.RGFormat;      
+    case 6: // MSM 
+      return THREE.RGBAFormat;
+    default:
+      return THREE.RGBAFormat;
+  }
+}
+
+function createShadowRenderTarget(res, shadowType) {
   const supportsFloatRT = renderer.extensions.has('EXT_color_buffer_float');
   const supportsFloatLinear = renderer.extensions.has('OES_texture_float_linear');
 
@@ -18,11 +40,13 @@ function createShadowRenderTarget(res) {
   const useMipmaps = shouldUseShadowMipmaps();
   const minFilter = useMipmaps ? THREE.LinearMipmapLinearFilter : baseFilter;
 
+  const f = pickShadowFormat(shadowType);
+
   return new THREE.WebGLCubeRenderTarget(res, {
     generateMipmaps: useMipmaps,
     minFilter,
     magFilter: baseFilter,
-    format: THREE.RGBAFormat,
+    format: f,
     type,
     depthBuffer: true,
     stencilBuffer: false,
@@ -33,9 +57,8 @@ function recreateShadowPassRenderTargets() {
     if (shadowCubeRT) shadowCubeRT.dispose();
     if (shadowCubeBlurRT) shadowCubeBlurRT.dispose();
 
-    shadowCubeRT = createShadowRenderTarget(currentShadowRes);
-    shadowCubeBlurRT = createShadowRenderTarget(currentShadowRes);
-
+    shadowCubeRT = createShadowRenderTarget(currentShadowRes, uShadowType.value);
+    shadowCubeBlurRT = createShadowRenderTarget(currentShadowRes, uShadowType.value);
 
     uShadowCube.value = shadowCubeRT.texture;
 

@@ -4,6 +4,7 @@ uniform vec3 lightPos;
 uniform float nearPlane;
 uniform float farPlane;
 uniform float ESMK;
+uniform int shadowType;
 
 varying vec3 fragPosWorld;
 
@@ -15,5 +16,25 @@ void main()
     depth01 = clamp(depth01, 0.0, 1.0);
 
     //d, d^2, 
-    gl_FragColor = vec4(depth01, depth01 * depth01, exp(ESMK * depth01), 1.0);
+    switch (shadowType)
+    {
+        case 1:
+        case 2:
+        case 5:
+            gl_FragColor = vec4(depth01, 0.0, 0.0, 1.0);
+            break;
+        case 3:
+            gl_FragColor = vec4(depth01, depth01 * depth01, 0.0, 1.0);
+            break;
+        case 4:
+            gl_FragColor = vec4(exp(ESMK * depth01), 0.0, 0.0, 1.0);
+            break;
+        case 6:
+            gl_FragColor = vec4(depth01, depth01 *depth01, depth01*depth01*depth01, depth01*depth01*depth01*depth01);
+            break;
+        default:
+            gl_FragColor = vec4(0.0, 0.0, 0.0, 1.0);
+            break;
+    }
+    
 }

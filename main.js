@@ -10,6 +10,7 @@ initializeKeyboard();
 setupShadows();
 const performanceTracker = createPerformanceTracker(renderer);
 
+
 function update(now) {
     requestAnimationFrame(update);
     checkKeyboard();
