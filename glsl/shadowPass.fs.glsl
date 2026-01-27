@@ -8,7 +8,7 @@ uniform int shadowType;
 
 varying vec3 fragPosWorld;
 
-//basically a path through... render depth into cubemap face
+//render depth into cubemap face
 void main() 
 {
     float d = length(fragPosWorld - lightPos);
@@ -18,21 +18,21 @@ void main()
     //d, d^2, 
     switch (shadowType)
     {
-        case 1:
-        case 2:
-        case 5:
+        case 1: //hard
+        case 2: //pcf
+        case 5: //pcss
             gl_FragColor = vec4(depth01, 0.0, 0.0, 1.0);
             break;
-        case 3:
+        case 3: //var
             gl_FragColor = vec4(depth01, depth01 * depth01, 0.0, 1.0);
             break;
-        case 4:
+        case 4: //esm
             gl_FragColor = vec4(exp(ESMK * depth01), 0.0, 0.0, 1.0);
             break;
-        case 6:
+        case 6: //msm
             gl_FragColor = vec4(depth01, depth01 *depth01, depth01*depth01*depth01, depth01*depth01*depth01*depth01);
             break;
-        default:
+        default: 
             gl_FragColor = vec4(0.0, 0.0, 0.0, 1.0);
             break;
     }
