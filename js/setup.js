@@ -448,13 +448,25 @@ function injectPointShadowsIntoStandardMaterial(mat, shadowCommon) {
                     .replace(
                             '#include <lights_fragment_begin>',
                             `#include <lights_fragment_begin>
-                    float shadow;
-                    if (shadowType == 1) shadow = shadowFactorHard(shadowCube, lightPos, shadowNear, shadowFar, shadowBias, vWorldPos);
-                    else if (shadowType == 2) shadow = shadowFactorPCF(shadowCube, lightPos, shadowNear, shadowFar, shadowBias, vWorldPos, pcfRadius, poissonSamples);
-                    else if (shadowType == 3) shadow = shadowFactorVariance(shadowCube, lightPos, shadowNear, shadowFar, shadowBias, vWorldPos);
-                    else if (shadowType == 4) shadow = shadowFactorESM(shadowCube, lightPos, shadowNear, shadowFar, shadowBias, vWorldPos, ESMK);
-                    else if (shadowType == 5) shadow = shadowFactorPCSS(shadowCube, lightPos, shadowNear, shadowFar, shadowBias, vWorldPos, lightRadius, pcssBlockerSamples, poissonSamples);
-                    else shadow = 1.0;
+                    #ifndef SHADOW_TYPE
+                    #define SHADOW_TYPE 1
+                    #endif
+
+                    float shadow = 1.0;
+
+                    #if SHADOW_TYPE == 1
+                        shadow = shadowFactorHard(shadowCube, lightPos, shadowNear, shadowFar, shadowBias, vWorldPos);
+                    #elif SHADOW_TYPE == 2
+                        shadow = shadowFactorPCF(shadowCube, lightPos, shadowNear, shadowFar, shadowBias, vWorldPos, pcfRadius, poissonSamples);
+                    #elif SHADOW_TYPE == 3
+                        shadow = shadowFactorVariance(shadowCube, lightPos, shadowNear, shadowFar, shadowBias, vWorldPos);
+                    #elif SHADOW_TYPE == 4
+                        shadow = shadowFactorESM(shadowCube, lightPos, shadowNear, shadowFar, shadowBias, vWorldPos, ESMK);
+                    #elif SHADOW_TYPE == 5
+                        shadow = shadowFactorPCSS(shadowCube, lightPos, shadowNear, shadowFar, shadowBias, vWorldPos, lightRadius, pcssBlockerSamples, poissonSamples);
+                    #else
+                        shadow = 1.0;
+                    #endif
 
                     reflectedLight.directDiffuse *= shadow;
                     reflectedLight.directSpecular *= shadow;

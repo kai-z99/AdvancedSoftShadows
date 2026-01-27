@@ -7,18 +7,43 @@ function setShadowResolution(size) {
     updateShadowUI();
 }
 
+function applyShadowTypeDefineToMaterial(mat, shadowType) {
+  mat.defines = mat.defines || {};
+  mat.defines.SHADOW_TYPE = shadowType;
+
+  // Make sure Three builds a different program per SHADOW_TYPE
+  mat.customProgramCacheKey = function () {
+    return `SHADOW_TYPE:${this.defines?.SHADOW_TYPE ?? 0}`;
+  };
+
+  mat.needsUpdate = true; // triggers recompile
+}
+
+function applyShadowTypeDefineToAllLitMaterials(shadowType) {
+  applyShadowTypeDefineToMaterial(armadilloMaterial, shadowType);
+  Object.values(floorMaterialByKey).forEach(entry => {
+    applyShadowTypeDefineToMaterial(entry.material, shadowType);
+  });
+}
+
+
 function setShadowType(newType) {
-    const clamped = Math.min(Math.max(newType, 1), shadowModeNames.length - 1);
-    if (uShadowType.value === clamped) return;
-    const prevUseMipmaps = shouldUseShadowMipmaps();
-    uShadowType.value = clamped;
-    const nextUseMipmaps = shouldUseShadowMipmaps();
-    if (prevUseMipmaps !== nextUseMipmaps) {
-        recreateShadowPassRenderTargets();
-    }
-    const mode = shadowModeNames[uShadowType.value] || `Mode ${uShadowType.value}`;
-    console.log("Shadow type changed to: " + mode);
-    updateShadowUI();
+  const clamped = Math.min(Math.max(newType, 1), shadowModeNames.length - 1);
+  if (uShadowType.value === clamped) return;
+
+  const prevUseMipmaps = shouldUseShadowMipmaps();
+  uShadowType.value = clamped;
+
+  // recompile lighting shaders as specialized variants
+  applyShadowTypeDefineToAllLitMaterials(clamped);
+
+  const nextUseMipmaps = shouldUseShadowMipmaps();
+  if (prevUseMipmaps !== nextUseMipmaps) {
+    recreateShadowPassRenderTargets();
+  }
+
+  console.log("Shadow type changed to: " + (shadowModeNames[uShadowType.value] || `Mode ${uShadowType.value}`));
+  updateShadowUI();
 }
 
 function setPoissonSamples(value) {

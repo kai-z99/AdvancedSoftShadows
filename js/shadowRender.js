@@ -4,29 +4,8 @@ let shadowCams = [];
 let tempBlurRight = new THREE.Vector3();
 const shadowClearColor = new THREE.Color(1, 1, 1);
 
-function pickShadowFormat(shadowType) {
-  const isWebGL2 = renderer.capabilities.isWebGL2;
 
-  if (!isWebGL2) {
-    return THREE.RGBAFormat;
-  }
-
-  switch (shadowType) {
-    case 1: // HARD
-    case 2: // PCF
-    case 5: // PCSS
-    case 4: // ESM
-      return THREE.RedFormat;  
-    case 3: // VSM
-      return THREE.RGFormat;      
-    case 6: // MSM 
-      return THREE.RGBAFormat;
-    default:
-      return THREE.RGBAFormat;
-  }
-}
-
-function createShadowRenderTarget(res, shadowType) {
+function createShadowRenderTarget(res) {
   const supportsFloatRT = renderer.extensions.has('EXT_color_buffer_float');
   const supportsFloatLinear = renderer.extensions.has('OES_texture_float_linear');
 
@@ -40,13 +19,12 @@ function createShadowRenderTarget(res, shadowType) {
   const useMipmaps = shouldUseShadowMipmaps();
   const minFilter = useMipmaps ? THREE.LinearMipmapLinearFilter : baseFilter;
 
-  const f = pickShadowFormat(shadowType);
 
   return new THREE.WebGLCubeRenderTarget(res, {
     generateMipmaps: useMipmaps,
     minFilter,
     magFilter: baseFilter,
-    format: f,
+    format: THREE.RGBAFormat,
     type,
     depthBuffer: true,
     stencilBuffer: false,
