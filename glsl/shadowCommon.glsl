@@ -376,7 +376,7 @@ float shadowFactorPCSS(
 }
 
 
-
+//Direct translation of algorithm 3.
 float GetHamburger4MSMShadowIntensity(vec4 moments, float fragmentDepth, float depthBias, float momentBias)
 {
     const float EPS = 1e-7;
@@ -386,7 +386,7 @@ float GetHamburger4MSMShadowIntensity(vec4 moments, float fragmentDepth, float d
 
     float z0 = fragmentDepth - depthBias;
 
-    // Cholesky factoriazation of hankel matrix
+    //2. Cholesky factoriazation of hankel matrix
     float L32D22 = b.z - b.x * b.y;          // mad(-b0, b1, b2)
     float D22    = b.y - b.x * b.x;          // mad(-b0, b0, b1)
     float SDV    = b.w - b.y * b.y;          // mad(-b1, b1, b3)
@@ -401,7 +401,7 @@ float GetHamburger4MSMShadowIntensity(vec4 moments, float fragmentDepth, float d
     float invD22 = 1.0 / D22;
     float L32    = L32D22 * invD22;
 
-    // Solve for c via forward/substitution/scaling/back-substitution
+    //3. Solve for c via forward/substitution/scaling/back-substitution
     vec3 c = vec3(1.0, z0, z0 * z0);
 
     // Forward substitution: L * c1 = bz
