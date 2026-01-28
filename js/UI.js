@@ -200,35 +200,109 @@
             infoElement.appendChild(sectionElement);
 
             (section.controls || []).forEach((control) => {
-                const rowOptions = {};
-                if (control.valueMinWidth) {
-                    rowOptions.valueMinWidth = control.valueMinWidth;
+                if (control.isDropdown) {
+                    // Create dropdown row
+                    const dropdownRow = document.createElement('div');
+                    Object.assign(dropdownRow.style, {
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                        gap: '12px',
+                        width: '100%',
+                    });
+
+                    const nameSpan = document.createElement('span');
+                    nameSpan.textContent = `${control.label || control.key}:`;
+                    Object.assign(nameSpan.style, {
+                        minWidth: '110px',
+                        display: 'inline-block',
+                        whiteSpace: 'nowrap',
+                        flexShrink: '0',
+                    });
+
+                    const dropdownWrapper = document.createElement('div');
+                    Object.assign(dropdownWrapper.style, {
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '6px',
+                        flex: '1',
+                        justifyContent: 'flex-end',
+                    });
+
+                    const select = document.createElement('select');
+                    Object.assign(select.style, {
+                        padding: '2px 6px',
+                        fontSize: '12px',
+                        fontFamily: 'monospace',
+                        borderRadius: '3px',
+                        border: '1px solid rgba(255, 255, 255, 0.4)',
+                        backgroundColor: 'rgba(0, 0, 0, 0.6)',
+                        color: '#ffffff',
+                        cursor: 'pointer',
+                        minWidth: control.valueMinWidth || '100px',
+                    });
+
+                    control.values.forEach((val) => {
+                        const option = document.createElement('option');
+                        option.value = val;
+                        option.textContent = control.formatValue(val);
+                        option.style.backgroundColor = '#222';
+                        select.appendChild(option);
+                    });
+
+                    const state = control.getState ? control.getState() : {};
+                    select.value = state.value;
+
+                    select.addEventListener('change', (event) => {
+                        event.stopPropagation();
+                        const newValue = control.values.find(v => String(v) === select.value);
+                        if (newValue !== undefined && typeof control.onChange === 'function') {
+                            control.onChange(newValue);
+                        }
+                    });
+
+                    dropdownWrapper.appendChild(select);
+                    dropdownRow.appendChild(nameSpan);
+                    dropdownRow.appendChild(dropdownWrapper);
+                    sectionBody.appendChild(dropdownRow);
+
+                    controlViews.push({
+                        control,
+                        select,
+                        isDropdown: true,
+                    });
+                } else {
+                    // Original dual-button control
+                    const rowOptions = {};
+                    if (control.valueMinWidth) {
+                        rowOptions.valueMinWidth = control.valueMinWidth;
+                    }
+                    if (control.onReset) {
+                        rowOptions.reset = {
+                            label: control.resetLabel || 'Reset',
+                            onReset: () => control.onReset(),
+                        };
+                    }
+                    const row = createInfoRow(
+                        sectionBody,
+                        control.label || control.key,
+                        control.key,
+                        fields,
+                        rowOptions
+                    );
+                    const buttons = createDualButtonGroup(
+                        row.valueContainer,
+                        () => control.onLower && control.onLower(),
+                        () => control.onHigher && control.onHigher()
+                    );
+                    controlViews.push({
+                        control,
+                        valueSpan: row.valueSpan,
+                        lowerButton: buttons.lower,
+                        higherButton: buttons.higher,
+                        resetButton: row.resetButton,
+                    });
                 }
-                if (control.onReset) {
-                    rowOptions.reset = {
-                        label: control.resetLabel || 'Reset',
-                        onReset: () => control.onReset(),
-                    };
-                }
-                const row = createInfoRow(
-                    sectionBody,
-                    control.label || control.key,
-                    control.key,
-                    fields,
-                    rowOptions
-                );
-                const buttons = createDualButtonGroup(
-                    row.valueContainer,
-                    () => control.onLower && control.onLower(),
-                    () => control.onHigher && control.onHigher()
-                );
-                controlViews.push({
-                    control,
-                    valueSpan: row.valueSpan,
-                    lowerButton: buttons.lower,
-                    higherButton: buttons.higher,
-                    resetButton: row.resetButton,
-                });
             });
 
             (section.toggles || []).forEach((toggle) => {
@@ -274,11 +348,20 @@
             controlViews.forEach((view) => {
                 if (!view.control || typeof view.control.getState !== 'function') return;
                 const state = view.control.getState();
-                view.valueSpan.textContent = state.valueLabel || '...';
-                setButtonDisabledState(view.lowerButton, !toBoolean(state.canLower, true));
-                setButtonDisabledState(view.higherButton, !toBoolean(state.canHigher, true));
-                if (view.resetButton) {
-                    setButtonDisabledState(view.resetButton, !toBoolean(state.canReset, false));
+                
+                if (view.isDropdown) {
+                    // Update dropdown selection
+                    if (view.select && state.value !== undefined) {
+                        view.select.value = state.value;
+                    }
+                } else {
+                    // Update dual-button control
+                    view.valueSpan.textContent = state.valueLabel || '...';
+                    setButtonDisabledState(view.lowerButton, !toBoolean(state.canLower, true));
+                    setButtonDisabledState(view.higherButton, !toBoolean(state.canHigher, true));
+                    if (view.resetButton) {
+                        setButtonDisabledState(view.resetButton, !toBoolean(state.canReset, false));
+                    }
                 }
             });
             toggleViews.forEach((view) => {
@@ -409,6 +492,38 @@ function createToggleControl({
         onToggle(checked) {
             setValue(checked);
         },
+    };
+}
+
+function createDropdownControl({
+    key,
+    label,
+    values,
+    getValue,
+    setValue,
+    defaultValue,
+    formatValue = (value) => value.toString(),
+    valueMinWidth,
+}) {
+    return {
+        key,
+        label,
+        valueMinWidth,
+        isDropdown: true,
+        values,
+        formatValue,
+        getState() {
+            const value = getValue();
+            return {
+                value,
+                valueLabel: formatValue(value),
+                canReset: (typeof defaultValue !== 'undefined') ? value !== defaultValue : false,
+            };
+        },
+        onChange(newValue) {
+            setValue(newValue);
+        },
+        onReset: (typeof defaultValue !== 'undefined') ? () => setValue(defaultValue) : null,
     };
 }
 

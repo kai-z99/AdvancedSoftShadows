@@ -1,7 +1,7 @@
 'use strict';
 
 // Shadow options and configuration constants
-const shadowModeNames = ['', 'Hard', 'PCF', 'Variance', 'ESM', 'PCSS', 'MSM']; //'' at 0 so the first starts at 1 (uShadowType)
+const shadowModeNames = ['', 'Hard', 'PCF', 'VSM', 'ESM', 'PCSS', 'MSM']; //'' at 0 so the first starts at 1 (uShadowType)
 const BASE_SHADOW_RES = 512;
 const VARIANCE_SHADOW_RES = 512;
 const SHADOW_RES_OPTIONS = [256, BASE_SHADOW_RES, 1024, 2048];

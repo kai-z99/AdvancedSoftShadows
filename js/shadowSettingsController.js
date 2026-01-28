@@ -205,7 +205,7 @@ function getShadowUIControls() {
     const modeValues = Array.from({ length: shadowModeNames.length - 1 }, (_, idx) => idx + 1);
 
     const generalControls = [
-        createDiscreteControl({
+        createDropdownControl({
             key: 'shadowType',
             label: 'Shadow Method',
             values: modeValues,
