@@ -374,7 +374,7 @@ function loadShadowShaders() {
             sphereMaterial.fragmentShader = shaders['glsl/sphere.fs.glsl'];
             sphereMaterial.needsUpdate = true; 
 
-            pointShadowMaterial.vertexShader     = shaders['glsl/shadowPass.vs.glsl'];
+            pointShadowMaterial.vertexShader = shaders['glsl/shadowPass.vs.glsl'];
             pointShadowMaterial.fragmentShader = shaders['glsl/shadowPass.fs.glsl'];
             pointShadowMaterial.needsUpdate = true;
 
@@ -385,99 +385,21 @@ function loadShadowShaders() {
             shadowDebugMaterial.vertexShader = shaders['glsl/shadowDebug.vs.glsl'];
             shadowDebugMaterial.fragmentShader = shaders['glsl/shadowDebug.fs.glsl'];
             shadowDebugMaterial.needsUpdate = true;
-            
 
             blurPlane.material = blurMaterial;
             shadowDebugPlane.material = shadowDebugMaterial;
 
             const shadowCommon = shaders['glsl/shadowCommon.glsl'];
+            registerShadowChunks(shadowCommon);
+
+            // Inject shadow support into all lit materials
             Object.values(floorMaterialByKey).forEach((entry) => {
-                injectPointShadowsIntoStandardMaterial(entry.material, shadowCommon);
+                injectPointShadowsIntoMaterial(entry.material);
             });
-            injectPointShadowsIntoStandardMaterial(armadilloMaterial, shadowCommon);
+            injectPointShadowsIntoMaterial(armadilloMaterial);
     });
 }
 
-function injectPointShadowsIntoStandardMaterial(mat, shadowCommon) {
-    mat.onBeforeCompile = (shader) => {
-            shader.uniforms.shadowCube             = uShadowCube;
-            shader.uniforms.shadowNear             = uShadowNear;
-            shader.uniforms.shadowFar              = uShadowFar;
-            shader.uniforms.shadowBias             = uShadowBias;
-            shader.uniforms.lightPos               = uLightPosition;
-            shader.uniforms.pcfRadius              = uPCFRadius;
-            shader.uniforms.poissonSamples         = uPoissonSamples;
-            shader.uniforms.shadowType             = uShadowType;
-            shader.uniforms.lightRadius              = uLightRadius;
-            shader.uniforms.pcssBlockerSamples     = uBlockerSamples;
-            shader.uniforms.ESMK                   = uESMK;
-            shader.uniforms.lightBleedReduction    = uBleedReduction;
-            mat.userData.shadowShader              = shader;
-
-            shader.vertexShader = shader.vertexShader
-                    .replace('#include <common>', '#include <common>\nvarying vec3 vWorldPos;')
-                    .replace(
-                            '#include <worldpos_vertex>',
-                            `#include <worldpos_vertex>
-                    vec4 worldPos = modelMatrix * vec4( transformed, 1.0 );
-                    vWorldPos = worldPos.xyz;`
-                    );
-
-            shader.fragmentShader = shader.fragmentShader
-                    .replace(
-                            '#include <common>',
-                            `#include <common>
-                    varying vec3 vWorldPos;
-
-                    uniform samplerCube shadowCube;
-                    uniform vec3 lightPos;
-                    uniform float shadowNear;
-                    uniform float shadowFar;
-                    uniform float shadowBias;
-                    uniform float pcfRadius;
-                    uniform int shadowType;
-                    uniform float lightRadius;
-                    uniform int poissonSamples;
-                    uniform int pcssBlockerSamples;
-                    uniform float ESMK;
-                    uniform float lightBleedReduction;
-
-            ${shadowCommon}
-            `
-                    )
-                    .replace(
-                            '#include <lights_fragment_begin>',
-                            `#include <lights_fragment_begin>
-                    #ifndef SHADOW_TYPE
-                    #define SHADOW_TYPE 1
-                    #endif
-
-                    float shadow = 1.0;
-
-                    #if SHADOW_TYPE == 1
-                        shadow = shadowFactorHard(shadowCube, lightPos, shadowNear, shadowFar, shadowBias, vWorldPos);
-                    #elif SHADOW_TYPE == 2
-                        shadow = shadowFactorPCF(shadowCube, lightPos, shadowNear, shadowFar, shadowBias, vWorldPos, pcfRadius, poissonSamples);
-                    #elif SHADOW_TYPE == 3
-                        shadow = shadowFactorVariance(shadowCube, lightPos, shadowNear, shadowFar, shadowBias, vWorldPos);
-                    #elif SHADOW_TYPE == 4
-                        shadow = shadowFactorESM(shadowCube, lightPos, shadowNear, shadowFar, shadowBias, vWorldPos, ESMK);
-                    #elif SHADOW_TYPE == 5
-                        shadow = shadowFactorPCSS(shadowCube, lightPos, shadowNear, shadowFar, shadowBias, vWorldPos, lightRadius, pcssBlockerSamples, poissonSamples);
-                    #elif SHADOW_TYPE == 6
-                        shadow = shadowFactorMSM(shadowCube, lightPos, shadowNear, shadowFar, shadowBias, vWorldPos);
-                    #else
-                        shadow = 1.0;
-                    #endif
-
-                    reflectedLight.directDiffuse *= shadow;
-                    reflectedLight.directSpecular *= shadow;
-`
-                    );
-    };
-
-    mat.needsUpdate = true;
-}
 
 function initializeKeyboard() {
         if (keyboard) return keyboard;

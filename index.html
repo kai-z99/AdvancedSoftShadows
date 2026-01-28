@@ -16,20 +16,31 @@
 
 <body>
     <canvas id="webglcanvas"></canvas>
-    <script src="js/WebGL.js"></script>
-    <script src="js/three.min.js"></script>
-    <script src="js/OBJLoader.js"></script>
-    <script src="js/SourceLoader.js"></script>
-    <script src="js/OrbitControls.js"></script>
-    <script src="js/KeyboardState.js"></script> <!-- By Jerome Etienne: http://jetienne.com/ -->
-    <script src="js/shadowConstants.js"></script>
-    <script src="js/setup.js"></script>
-    <script src="js/UI.js"></script>
-    <script src="js/shadowRender.js"></script>
-    <script src="js/shadowSettingsController.js"></script>
-    <script src="js/materialConfig.js"></script>
-    <script src="js/input.js"></script>
-    <script src="main.js"></script>
+    
+    <!-- Core Libraries  -->
+    <script src="js/WebGL.js"></script>              <!-- standalone: WebGL detection -->
+    <script src="js/three.min.js"></script>          <!-- standalone: Three.js core -->
+    
+    <!-- Three.js Plugins -->
+    <script src="js/OBJLoader.js"></script>          <!-- depends: THREE -->
+    <script src="js/SourceLoader.js"></script>       <!-- depends: THREE -->
+    <script src="js/OrbitControls.js"></script>      <!-- depends: THREE -->
+    <script src="js/KeyboardState.js"></script>      <!-- standalone (by Jerome Etienne) -->
+    
+    <!-- Shadow System -->
+    <script src="js/shadowConstants.js"></script>    <!-- depends: THREE (for Vector3) -->
+    <script src="js/shaderChunks.js"></script>       <!-- depends: THREE.ShaderChunk -->
+    <script src="js/setup.js"></script>              <!-- depends: THREE, shadowConstants, shaderChunks, WEBGL -->
+    
+    <!-- UI & Rendering -->
+    <script src="js/UI.js"></script>                 <!-- standalone: creates DOM elements -->
+    <script src="js/shadowRender.js"></script>       <!-- depends: THREE, setup.js globals (renderer, shadowCubeRT, etc.) -->
+    <script src="js/shadowSettingsController.js"></script> <!-- depends: setup.js globals, UI.js, shadowRender.js -->
+    <script src="js/materialConfig.js"></script>     <!-- depends: THREE, setup.js globals (FLOOR_MATERIAL_CONFIGS, floorMesh) -->
+    
+    <!-- Input & Main -->
+    <script src="js/input.js"></script>              <!-- depends: setup.js globals (keyboard, uLightPosition, sphereLight) -->
+    <script src="main.js"></script>                  <!-- depends: ALL above (entry point) -->
 </body>
 
 </html>
