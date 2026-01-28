@@ -55,6 +55,13 @@ function setPoissonSamples(value) {
     updateShadowUI();
 }
 
+function setPoissonRotationEnabled(enabled) {
+    if (uPoissonRotation.value === enabled) return;
+    uPoissonRotation.value = enabled;
+    console.log("Poisson rotation: " + (enabled ? 'Enabled' : 'Disabled'));
+    updateShadowUI();
+}
+
 function setPCSSBlockerSamples(value) {
     const idx = PCSS_BLOCKER_SAMPLE_OPTIONS.indexOf(value);
     if (idx === -1) return;
@@ -294,6 +301,15 @@ function getShadowUIControls() {
         }),
     ];
 
+    const samplingToggles = [
+        createToggleControl({
+            key: 'poissonRotation',
+            label: 'Rotate Poisson Samples',
+            getValue: () => uPoissonRotation.value,
+            setValue: setPoissonRotationEnabled,
+        }),
+    ];
+
     const filteringControls = [
         createDiscreteControl({
             key: 'blurWidth',
@@ -437,6 +453,7 @@ function getShadowUIControls() {
         {
             title: 'Sampling',
             controls: samplingControls,
+            toggles: samplingToggles,
         },
         {
             title: 'Filtering',

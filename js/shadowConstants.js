@@ -34,6 +34,9 @@ const PCF_EPS = 1e-6;
 const POISSON_SAMPLE_OPTIONS = [8, 16, 32, 64];
 const POISSON_SAMPLES_DEFAULT = 64;
 
+//poisson rotation
+const POISSON_ROTATION_DEFAULT = true;
+
 //pcss
 const PCSS_BLOCKER_SAMPLE_OPTIONS = [4, 8, 16, 32];
 const PCSS_BLOCKER_SAMPLES_DEFAULT = 32;

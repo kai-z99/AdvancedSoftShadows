@@ -5,6 +5,7 @@ const uLightPosition   = { type: 'v3', value: new THREE.Vector3(0.0, 75.0, -0.0)
 const uLightRadius     = { value: LIGHT_RADIUS_DEFAULT };
 const uPCFRadius     = { value: PCF_RADIUS_DEFAULT };
 const uPoissonSamples = { value: POISSON_SAMPLES_DEFAULT };
+const uPoissonRotation = { value: POISSON_ROTATION_DEFAULT };
 const uBlockerSamples = { value: PCSS_BLOCKER_SAMPLES_DEFAULT };
 const uShadowType    = { value: 1 };
 const uShadowNear    = { value: SHADOW_NEAR_DEFAULT };

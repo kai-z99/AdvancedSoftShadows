@@ -21,6 +21,7 @@ function registerShadowChunks(shadowCommonGLSL) {
         uniform int pcssBlockerSamples;
         uniform float ESMK;
         uniform float lightBleedReduction;
+        uniform bool poissonRotation;
 
         ${shadowCommonGLSL}
     `;
@@ -48,13 +49,13 @@ function registerShadowChunks(shadowCommonGLSL) {
         #if SHADOW_TYPE == 1
             shadow = shadowFactorHard(shadowCube, lightPos, shadowNear, shadowFar, shadowBias, vWorldPos);
         #elif SHADOW_TYPE == 2
-            shadow = shadowFactorPCF(shadowCube, lightPos, shadowNear, shadowFar, shadowBias, vWorldPos, pcfRadius, poissonSamples);
+            shadow = shadowFactorPCF(shadowCube, lightPos, shadowNear, shadowFar, shadowBias, vWorldPos, pcfRadius, poissonSamples, poissonRotation);
         #elif SHADOW_TYPE == 3
             shadow = shadowFactorVariance(shadowCube, lightPos, shadowNear, shadowFar, shadowBias, vWorldPos);
         #elif SHADOW_TYPE == 4
             shadow = shadowFactorESM(shadowCube, lightPos, shadowNear, shadowFar, shadowBias, vWorldPos, ESMK);
         #elif SHADOW_TYPE == 5
-            shadow = shadowFactorPCSS(shadowCube, lightPos, shadowNear, shadowFar, shadowBias, vWorldPos, lightRadius, pcssBlockerSamples, poissonSamples);
+            shadow = shadowFactorPCSS(shadowCube, lightPos, shadowNear, shadowFar, shadowBias, vWorldPos, lightRadius, pcssBlockerSamples, poissonSamples, poissonRotation);
         #elif SHADOW_TYPE == 6
             shadow = shadowFactorMSM(shadowCube, lightPos, shadowNear, shadowFar, shadowBias, vWorldPos);
         #else
@@ -103,6 +104,7 @@ function injectPointShadowsIntoMaterial(mat) {
         shader.uniforms.pcssBlockerSamples = uBlockerSamples;
         shader.uniforms.ESMK = uESMK;
         shader.uniforms.lightBleedReduction = uBleedReduction;
+        shader.uniforms.poissonRotation = uPoissonRotation;
         
         mat.userData.shadowShader = shader;
 

@@ -195,7 +195,8 @@ float shadowFactorPCF(
     float shadowBias,
     vec3 worldPos,
     float diskRadiusWorld,
-    int sampleCount
+    int sampleCount,
+    bool enableRotation
 )
 {
     vec3 L = worldPos - lightPos;
@@ -207,10 +208,13 @@ float shadowFactorPCF(
     vec3 T, B;
     makeBasis(dir, T, B);
 
-    float rand = hash13(worldPos);
-    float cs = cos(6.2831853 * rand);
-    float sn = sin(6.2831853 * rand);
-    mat2 rot = mat2(cs, -sn, sn, cs);
+    mat2 rot = mat2(1.0, 0.0, 0.0, 1.0); // identity by default
+    if (enableRotation) {
+        float rand = hash13(worldPos);
+        float cs = cos(6.2831853 * rand);
+        float sn = sin(6.2831853 * rand);
+        rot = mat2(cs, -sn, sn, cs);
+    }
 
     float sum = 0.0;
     int iterations = clamp(sampleCount, 1, POISSON_MAX);
@@ -292,7 +296,8 @@ float getAvgBlockerDepth(
     float shadowBias,
     vec3 worldPos,
     float lightRadius,
-    int numSamples
+    int numSamples,
+    bool enableRotation
 )
 {
     vec3 lightToFrag = worldPos - lightPos;
@@ -310,10 +315,13 @@ float getAvgBlockerDepth(
     float searchAngle = lightAngle * 1.5;
 
     //get a random rotation matrix for poisson disk
-    float rand = hash12(uvec2(gl_FragCoord.xy));
-    float cs = cos(2.0 * 3.14159265 * rand); 
-    float sn = sin(2.0 * 3.14159265 * rand);
-    mat2 rot = mat2(cs, -sn, sn, cs); //rotation matrix for random rotation on tangent plane
+    mat2 rot = mat2(1.0, 0.0, 0.0, 1.0); // identity by default
+    if (enableRotation) {
+        float rand = hash12(uvec2(gl_FragCoord.xy));
+        float cs = cos(2.0 * 3.14159265 * rand); 
+        float sn = sin(2.0 * 3.14159265 * rand);
+        rot = mat2(cs, -sn, sn, cs); //rotation matrix for random rotation on tangent plane
+    }
 
     float blockerDepthSum = 0.0;
     int numBlockers = 0;
@@ -360,11 +368,12 @@ float shadowFactorPCSS(
     vec3 worldPos,
     float lightRadius,
     int blockerSamples,
-    int pcfSamples
+    int pcfSamples,
+    bool enableRotation
 )
 {
     //Get average blocker depth:
-    float avgBlockerDepth = getAvgBlockerDepth(shadowCube, lightPos, shadowNear, shadowFar, shadowBias, worldPos, lightRadius, blockerSamples);
+    float avgBlockerDepth = getAvgBlockerDepth(shadowCube, lightPos, shadowNear, shadowFar, shadowBias, worldPos, lightRadius, blockerSamples, enableRotation);
     if (avgBlockerDepth < 0.0) return 1.0;    //No blockers found, fully lit
             
             
@@ -372,7 +381,7 @@ float shadowFactorPCSS(
     float filterRadius = getFilterRadius(avgBlockerDepth, length(worldPos - lightPos), lightRadius);
 
     //Do PCF with filter size:
-    return shadowFactorPCF(shadowCube, lightPos, shadowNear, shadowFar, shadowBias, worldPos, filterRadius, pcfSamples);
+    return shadowFactorPCF(shadowCube, lightPos, shadowNear, shadowFar, shadowBias, worldPos, filterRadius, pcfSamples, enableRotation);
 }
 
 
