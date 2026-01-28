@@ -320,7 +320,7 @@ function loadSceneObjects(scene) {
         // 4) Move the model so its center sits at the pivot origin
         armadillo.position.sub(center);
 
-        // 5) Scale model (if needed)
+        // 5) Scale model
         armadillo.scale.set(1.0, 1.0, 1.0);
 
         // 6) Add to pivot and rotate pivot in order X -> Y -> Z
@@ -464,6 +464,8 @@ function injectPointShadowsIntoStandardMaterial(mat, shadowCommon) {
                         shadow = shadowFactorESM(shadowCube, lightPos, shadowNear, shadowFar, shadowBias, vWorldPos, ESMK);
                     #elif SHADOW_TYPE == 5
                         shadow = shadowFactorPCSS(shadowCube, lightPos, shadowNear, shadowFar, shadowBias, vWorldPos, lightRadius, pcssBlockerSamples, poissonSamples);
+                    #elif SHADOW_TYPE == 6
+                        shadow = shadowFactorMSM(shadowCube, lightPos, shadowNear, shadowFar, shadowBias, vWorldPos);
                     #else
                         shadow = 1.0;
                     #endif

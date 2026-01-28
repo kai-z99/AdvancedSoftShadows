@@ -376,3 +376,89 @@ float shadowFactorPCSS(
 }
 
 
+
+float GetHamburger4MSMShadowIntensity(vec4 moments, float fragmentDepth, float depthBias, float momentBias)
+{
+    const float EPS = 1e-7;
+
+    // Bias input moments toward 0.5 to reduce artifacts from quantization / inconsistency
+    vec4 b = mix(moments, vec4(0.5), momentBias);
+
+    float z0 = fragmentDepth - depthBias;
+
+    // Cholesky factoriazation of hankel matrix
+    float L32D22 = b.z - b.x * b.y;          // mad(-b0, b1, b2)
+    float D22    = b.y - b.x * b.x;          // mad(-b0, b0, b1)
+    float SDV    = b.w - b.y * b.y;          // mad(-b1, b1, b3)
+
+    // D33D22 = dot( (SDV, -L32D22), (D22, L32D22) )
+    float D33D22 = SDV * D22 - L32D22 * L32D22;
+
+    // Keep denominators sane
+    D22    = max(D22, EPS);
+    D33D22 = max(D33D22, EPS);
+
+    float invD22 = 1.0 / D22;
+    float L32    = L32D22 * invD22;
+
+    // Solve for c via forward/substitution/scaling/back-substitution
+    vec3 c = vec3(1.0, z0, z0 * z0);
+
+    // Forward substitution: L * c1 = bz
+    c.y -= b.x;
+    c.z -= (b.y + L32 * c.y);
+
+    // Scaling: D * c2 = c1
+    c.y *= invD22;
+    c.z *= D22 / D33D22;
+
+    // Backward substitution: L^T * c3 = c2
+    c.y -= L32 * c.z;
+    c.x -= dot(c.yz, b.xy);
+
+    // Quadratic: c0 + c1*z + c2*z^2 = 0  -> roots z1, z2
+    float c2s = (abs(c.z) < EPS) ? (c.z >= 0.0 ? EPS : -EPS) : c.z;
+    float p   = c.y / c2s;
+    float q   = c.x / c2s;
+
+    float disc = max((p * p) * 0.25 - q, 0.0);
+    float r    = sqrt(disc);
+
+    float z1 = -0.5 * p - r;
+    float z2 = -0.5 * p + r;
+
+    // Piecewise selection
+    vec4 sw =
+        (z2 < z0) ? vec4(z1, z0, 1.0, 1.0) :
+        ((z1 < z0) ? vec4(z0, z1, 0.0, 1.0) :
+                     vec4(0.0, 0.0, 0.0, 0.0));
+
+    float denom = (z2 - sw.y) * (z0 - z1);
+    denom = (abs(denom) < EPS) ? (denom >= 0.0 ? EPS : -EPS) : denom;
+
+    float quotient = (sw.x * z2 - b.x * (sw.x + z2) + b.y) / denom;
+
+    return clamp(sw.z + sw.w * quotient, 0.0, 1.0);
+}
+
+float shadowFactorMSM(
+    samplerCube shadowCube,
+    vec3 lightPos,
+    float shadowNear,
+    float shadowFar,
+    float shadowBias,
+    vec3 worldPos
+)
+{
+    //return shadowFactorHard(shadowCube, lightPos, shadowNear, shadowFar, shadowBias, worldPos);
+
+    vec3 lightToFrag = worldPos - lightPos;
+    float receiverDepth = length(lightToFrag);
+    vec3 lightDir = normalize(lightToFrag);
+    float receiverDepthNormalized = clamp((receiverDepth - shadowNear) / (shadowFar - shadowNear), 0.0, 1.0);
+
+    vec4 moments = textureCube(shadowCube, lightDir);
+
+    return 1.0 - GetHamburger4MSMShadowIntensity(moments, receiverDepthNormalized, shadowBias, 1e-4);
+
+}
